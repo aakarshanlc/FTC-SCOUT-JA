@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FTC Scouting</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #f7f7f9; color: #222; }
+  h1 { color: #d32f2f; }
+  h2 { margin-top: 2.5rem; border-bottom: 2px solid #ddd; padding-bottom: .25rem; }
+  table { border-collapse: collapse; width: 100%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
+  th { background: #f0f0f0; }
+  tr:nth-child(even) { background: #fafafa; }
+  input { padding: .5rem; margin-bottom: 1rem; width: 250px; }
+  .error { color: #b00020; font-weight: bold; }
+  #status { color: #666; font-style: italic; }
+  #teamList td:first-child { font-weight: bold; width: 110px; }
+  #teamList tbody tr { cursor: pointer; }
+  #teamList tbody tr:hover { background: #ffecec; }
+  #teamList tbody tr.selected { background: #ffd6d6; }
+</style>
+</head>
+<body>
+<h1>FTC Scouting Dashboard</h1>
+<p id="status">Loading data…</p>
+
+<h2>Team Lookup</h2>
+<input id="search" type="number" placeholder="Enter team number or click a row…" oninput="showTeam()">
+<div id="teamList"></div>
+<div id="content"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+const SHEET_ID = "1PWdTIUPcPH_HxHqmH5rk8OSlTxkeGzbelaZv0GlFBwA";
+
+let teams = [], robots = [], matches = [];
+
+async function loadTab(name) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Couldn't load tab "${name}" (${res.status}). Check the tab name and that the sheet is shared as "Anyone with the link".`);
+  const csv = await res.text();
+  return Papa.parse(csv, { header: true, skipEmptyLines: true }).data
+    .map(normalizeRow)
+    .filter(r => Object.values(r).some(v => v !== ""));
+}
+
+function normalizeRow(row) {
+  const out = {};
+  for (const key in row) {
+    const k = key.trim().toLowerCase();
+    if (k) out[k] = String(row[key] ?? "").trim();
+  }
+  return out;
+}
+
+// value of the first column whose header contains any of the given words
+const col = (row, ...words) => {
+  for (const k in row)
+    if (words.some(w => k.includes(w))) return row[k];
+  return "";
+};
+
+async function loadAll() {
+  const status = document.getElementById("status");
+  try {
+    [teams, robots, matches] = await Promise.all([
+      loadTab("Teams"), loadTab("Robot"), loadTab("Matches")
+    ]);
+    status.textContent = `Loaded ${teams.length} teams, ${robots.length} robots, ${matches.length} match entries.`;
+    showTeamList();
+    showTeam();
+  } catch (err) {
+    status.innerHTML = `<span class="error">${err.message}</span>`;
+  }
+}
+
+const rowsFor = (rows, num) =>
+  rows.filter(r => col(r, "number") === String(num).trim());
+
+function buildTable(rows) {
+  if (!rows.length) return "<p><em>No data.</em></p>";
+  const cols = Object.keys(rows[0]);
+  const head = `<tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr>`;
+  const body = rows.map(r => `<tr>${cols.map(c => `<td>${r[c] ?? ""}</td>`).join("")}</tr>`).join("");
+  return `<table>${head}${body}</table>`;
+}
+
+function teamStats(num) {
+  const totals = rowsFor(matches, num).map(r => parseInt(col(r, "total")) || 0);
+  return {
+    played: totals.length,
+    avg: totals.length ? (totals.reduce((a,b)=>a+b,0) / totals.length).toFixed(1) : "–",
+    best: totals.length ? Math.max(...totals) : "–"
+  };
+}
+
+// --- Team list table (under the search bar) ---
+function showTeamList() {
+  const el = document.getElementById("teamList");
+  if (!teams.length) {
+    el.innerHTML = "<p><em>No teams in the Teams tab yet.</em></p>";
+    return;
+  }
+  const sorted = [...teams].sort((a, b) =>
+    (parseInt(col(a, "number")) || 0) - (parseInt(col(b, "number")) || 0));
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Number</th><th>Team Name</th><th>Organization</th></tr></thead>
+      <tbody>
+        ${sorted.map(t => {
+          const num = col(t, "number");
+          return `<tr data-num="${num}" onclick="pickTeam('${num}')">
+                    <td>${num}</td><td>${col(t, "name")}</td><td>${col(t, "organization", "org")}</td>
+                  </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+  highlightSelected();
+}
+
+function highlightSelected() {
+  const current = document.getElementById("search").value.trim();
+  document.querySelectorAll("#teamList tbody tr").forEach(tr =>
+    tr.classList.toggle("selected", tr.dataset.num === current));
+}
+
+function pickTeam(num) {
+  document.getElementById("search").value = num;
+  showTeam();
+}
+
+// --- Detail view for the selected team ---
+function showTeam() {
+  highlightSelected();
+  const num = document.getElementById("search").value.trim();
+  const content = document.getElementById("content");
+  if (!num) { content.innerHTML = ""; return; }
+
+  const team = rowsFor(teams, num)[0];
+  const robot = rowsFor(robots, num)[0];
+  const stats = teamStats(num);
+
+  content.innerHTML = `
+    <h2>Team ${num} ${team ? "— " + col(team, "name") : "(not in Teams tab)"}</h2>
+    <p><strong>Avg score:</strong> ${stats.avg} &nbsp;|&nbsp;
+       <strong>Best:</strong> ${stats.best} &nbsp;|&nbsp;
+       <strong>Matches logged:</strong> ${stats.played}</p>
+    <h3>Robot Info</h3>
+    ${robot ? buildTable([robot]) : "<p><em>No robot info yet.</em></p>"}
+    <h3>Match Scores</h3>
+    ${buildTable(rowsFor(matches, num))}
+  `;
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>
