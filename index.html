@@ -96,7 +96,7 @@ function teamStats(num) {
   };
 }
 
-// --- Team list table (under the search bar) ---
+//Team List Table
 function showTeamList() {
   const el = document.getElementById("teamList");
   if (!teams.length) {
@@ -131,7 +131,7 @@ function pickTeam(num) {
   showTeam();
 }
 
-// --- Detail view for the selected team ---
+//selected teams
 function showTeam() {
   highlightSelected();
   const num = document.getElementById("search").value.trim();
