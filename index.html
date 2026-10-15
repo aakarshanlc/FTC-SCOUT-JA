@@ -92,11 +92,11 @@ async function loadTab(name) {
     .filter(r => Object.values(r).some(v => v !== ""));
 }
 
-// lowercase + trim every header so lookups are case insensitive
+// lowercase and trim every header so lookups are case insensitive
 function normalizeRow(row) {
   const out = {};
   for (const key in row) {
-    const k = key.trim().toLowerCase();
+    const k = key.trim().toUpperCase();
     if (k) out[k] = String(row[key] ?? "").trim();
   }
   return out;
@@ -246,12 +246,12 @@ function scrimStats(num) {
   };
 }
 
-// build the full scrimmage table + the dropdown of event names
+// build the full scrimmage table and the dropdown of event names
 function renderScrimList() {
   const el = document.getElementById("scrimList");
   const filter = document.getElementById("scrimFilter");
 
-  // (re)build the dropdown of scrimmage names, keeping the current choice
+  // build the dropdown of scrimmage names, keeping the current choice
   const names = [...new Set(scrimmages.map(r => col(r, "scrimmage")).filter(Boolean))];
   const current = filter.value;
   filter.innerHTML = `<option value="">All scrimmages</option>` +
