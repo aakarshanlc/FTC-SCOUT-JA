@@ -13,29 +13,76 @@
   th { background: #f0f0f0; }
   tr:nth-child(even) { background: #fafafa; }
   input { padding: .5rem; margin-bottom: 1rem; width: 250px; }
+  select { padding: .5rem; margin-bottom: 1rem; }
   .error { color: #b00020; font-weight: bold; }
-  #status { color: #666; font-style: italic; }
+  .status { color: #666; font-style: italic; }
+
+  /* top-level site tabs */
+  #tabs { display: flex; gap: .5rem; border-bottom: 2px solid #d32f2f; margin: 1rem 0 1.5rem; }
+  .tab {
+    padding: .6rem 1.6rem; font-size: 1rem; cursor: pointer;
+    border: 1px solid #ddd; border-bottom: none;
+    background: #eee; color: #555; border-radius: 8px 8px 0 0;
+  }
+  .tab:hover { background: #f3dcdc; }
+  .tab.active { background: #d32f2f; border-color: #d32f2f; color: white; font-weight: bold; }
+  .pane { display: none; }
+  .pane.active { display: block; }
+
+  /* clickable team lists (shared by both tabs) */
+  .clickable tbody tr { cursor: pointer; }
+  .clickable tbody tr:hover { background: #ffecec; }
+  .clickable tbody tr.selected { background: #ffd6d6; }
   #teamList td:first-child { font-weight: bold; width: 110px; }
-  #teamList tbody tr { cursor: pointer; }
-  #teamList tbody tr:hover { background: #ffecec; }
-  #teamList tbody tr.selected { background: #ffd6d6; }
+  #scrimList td:nth-child(2) { font-weight: bold; }
 </style>
 </head>
 <body>
 <h1>FTC Scouting Dashboard</h1>
-<p id="status">Loading data…</p>
 
-<h2>Team Lookup</h2>
-<input id="search" type="number" placeholder="Enter team number or click a row…" oninput="showTeam()">
-<div id="teamList"></div>
-<div id="content"></div>
+<div id="tabs">
+  <button class="tab active" data-tab="championship" onclick="switchTab('championship')">Championship</button>
+  <button class="tab" data-tab="scrimmages" onclick="switchTab('scrimmages')">Scrimmages</button>
+</div>
+
+<!-- Championship -->
+<section id="championship" class="pane active">
+  <p id="status" class="status">Loading data…</p>
+
+  <h2>Team Lookup</h2>
+  <input id="search" type="number" placeholder="Enter team number or click a row…" oninput="showTeam()">
+  <div id="teamList" class="clickable"></div>
+  <div id="content"></div>
+</section>
+
+<!-- Scrimmages -->
+<section id="scrimmages" class="pane">
+  <p id="scrimStatus" class="status">Loading scrimmages…</p>
+
+  <h2>Scrimmage Lookup</h2>
+  <input id="scrimSearch" type="number" placeholder="Enter team number or click a row…" oninput="showScrimTeam()">
+  <select id="scrimFilter" onchange="renderScrimList(); showScrimTeam();">
+    <option value="">All scrimmages</option>
+  </select>
+
+  <div id="scrimList" class="clickable"></div>
+  <div id="scrimContent"></div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
 const SHEET_ID = "1PWdTIUPcPH_HxHqmH5rk8OSlTxkeGzbelaZv0GlFBwA";
+const SCRIMMAGE_TAB = "Scrimmages";   // name of the scrimmages tab in the Google Sheet
 
-let teams = [], robots = [], matches = [];
+let teams = [], robots = [], matches = [], scrimmages = [];
 
+// ---------- tab switching ----------
+function switchTab(id) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === id));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("active", p.id === id));
+}
+
+// ---------- sheet loading ----------
 async function loadTab(name) {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
   const res = await fetch(url);
@@ -46,6 +93,7 @@ async function loadTab(name) {
     .filter(r => Object.values(r).some(v => v !== ""));
 }
 
+// lowercase + trim every header so lookups are case-insensitive
 function normalizeRow(row) {
   const out = {};
   for (const key in row) {
@@ -63,6 +111,7 @@ const col = (row, ...words) => {
 };
 
 async function loadAll() {
+  // Championship tabs
   const status = document.getElementById("status");
   try {
     [teams, robots, matches] = await Promise.all([
@@ -74,11 +123,26 @@ async function loadAll() {
   } catch (err) {
     status.innerHTML = `<span class="error">${err.message}</span>`;
   }
+
+  // Scrimmages tab — loaded separately so a missing tab can't break the Championship view
+  const scrimStatus = document.getElementById("scrimStatus");
+  try {
+    scrimmages = await loadTab(SCRIMMAGE_TAB);
+    scrimStatus.textContent = `Loaded ${scrimmages.length} scrimmage entries.`;
+    renderScrimList();
+    showScrimTeam();
+  } catch (err) {
+    scrimStatus.innerHTML = `<span class="error">${err.message}</span>`;
+    document.getElementById("scrimList").innerHTML = "";
+    document.getElementById("scrimContent").innerHTML = "";
+  }
 }
 
+// all rows whose "number" column matches the given team number
 const rowsFor = (rows, num) =>
   rows.filter(r => col(r, "number") === String(num).trim());
 
+// generic table renderer from an array of row objects
 function buildTable(rows) {
   if (!rows.length) return "<p><em>No data.</em></p>";
   const cols = Object.keys(rows[0]);
@@ -87,6 +151,9 @@ function buildTable(rows) {
   return `<table>${head}${body}</table>`;
 }
 
+// ==================== CHAMPIONSHIP ====================
+
+// avg / best / played based on the "total" column of the Matches tab
 function teamStats(num) {
   const totals = rowsFor(matches, num).map(r => parseInt(col(r, "total")) || 0);
   return {
@@ -96,7 +163,7 @@ function teamStats(num) {
   };
 }
 
-//Team List Table
+// team list table
 function showTeamList() {
   const el = document.getElementById("teamList");
   if (!teams.length) {
@@ -120,18 +187,20 @@ function showTeamList() {
   highlightSelected();
 }
 
+// highlight the row matching the current search box value
 function highlightSelected() {
   const current = document.getElementById("search").value.trim();
   document.querySelectorAll("#teamList tbody tr").forEach(tr =>
     tr.classList.toggle("selected", tr.dataset.num === current));
 }
 
+// called when a team row is clicked
 function pickTeam(num) {
   document.getElementById("search").value = num;
   showTeam();
 }
 
-//selected teams
+// selected team details
 function showTeam() {
   highlightSelected();
   const num = document.getElementById("search").value.trim();
@@ -151,6 +220,112 @@ function showTeam() {
     ${robot ? buildTable([robot]) : "<p><em>No robot info yet.</em></p>"}
     <h3>Match Scores</h3>
     ${buildTable(rowsFor(matches, num))}
+  `;
+}
+
+// ==================== SCRIMMAGES ====================
+
+// rows currently visible (respects the scrimmage dropdown filter)
+function filteredScrim() {
+  const f = document.getElementById("scrimFilter").value;
+  return f ? scrimmages.filter(r => col(r, "scrimmage") === f) : scrimmages;
+}
+
+// avg / best for total, auto, and teleop within the filtered rows
+function scrimStats(num) {
+  const rows = rowsFor(filteredScrim(), num);
+  const sum = arr => arr.reduce((a, b) => a + b, 0);
+  const t = rows.map(r => parseInt(col(r, "total")) || 0);
+  const a = rows.map(r => parseInt(col(r, "auto")) || 0);
+  const p = rows.map(r => parseInt(col(r, "teleop")) || 0);
+  return {
+    played: rows.length,
+    avgTotal:  t.length ? (sum(t) / t.length).toFixed(1) : "–",
+    bestTotal: t.length ? Math.max(...t) : "–",
+    avgAuto:   a.length ? (sum(a) / a.length).toFixed(1) : "–",
+    avgTeleop: p.length ? (sum(p) / p.length).toFixed(1) : "–"
+  };
+}
+
+// build the full scrimmage table + the dropdown of event names
+function renderScrimList() {
+  const el = document.getElementById("scrimList");
+  const filter = document.getElementById("scrimFilter");
+
+  // (re)build the dropdown of scrimmage names, keeping the current choice
+  const names = [...new Set(scrimmages.map(r => col(r, "scrimmage")).filter(Boolean))];
+  const current = filter.value;
+  filter.innerHTML = `<option value="">All scrimmages</option>` +
+                     names.map(n => `<option value="${n}">${n}</option>`).join("");
+  if (names.includes(current)) filter.value = current;
+
+  if (!scrimmages.length) {
+    el.innerHTML = "<p><em>No data in the Scrimmages tab yet.</em></p>";
+    return;
+  }
+
+  // sort by scrimmage name, then team number
+  const sorted = [...filteredScrim()].sort((a, b) => {
+    const s = col(a, "scrimmage").localeCompare(col(b, "scrimmage"));
+    return s !== 0 ? s : (parseInt(col(a, "number")) || 0) - (parseInt(col(b, "number")) || 0);
+  });
+
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Scrimmage</th><th>Number</th><th>Name</th><th>Organization</th>
+              <th>Drivetrain</th><th>Auto</th><th>Teleop</th><th>Flower</th><th>Total</th></tr></thead>
+      <tbody>
+        ${sorted.map(r => {
+          const num = col(r, "number");
+          return `<tr data-num="${num}" onclick="pickScrimTeam('${num}')">
+            <td>${col(r, "scrimmage")}</td>
+            <td>${num}</td>
+            <td>${col(r, "name")}</td>
+            <td>${col(r, "organization", "org")}</td>
+            <td>${col(r, "drivetrain")}</td>
+            <td>${col(r, "auto")}</td>
+            <td>${col(r, "teleop")}</td>
+            <td>${col(r, "flower")}</td>
+            <td>${col(r, "total")}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+  highlightScrimSelected();
+}
+
+// highlight the scrimmage row matching the current search box value
+function highlightScrimSelected() {
+  const current = document.getElementById("scrimSearch").value.trim();
+  document.querySelectorAll("#scrimList tbody tr").forEach(tr =>
+    tr.classList.toggle("selected", tr.dataset.num === current));
+}
+
+// called when a scrimmage row is clicked
+function pickScrimTeam(num) {
+  document.getElementById("scrimSearch").value = num;
+  showScrimTeam();
+}
+
+// selected team's scrimmage details
+function showScrimTeam() {
+  highlightScrimSelected();
+  const num = document.getElementById("scrimSearch").value.trim();
+  const content = document.getElementById("scrimContent");
+  if (!num) { content.innerHTML = ""; return; }
+
+  const stats = scrimStats(num);
+  const rows = rowsFor(filteredScrim(), num);
+
+  content.innerHTML = `
+    <h2>Team ${num} — Scrimmage Results</h2>
+    <p><strong>Avg total:</strong> ${stats.avgTotal} &nbsp;|&nbsp;
+       <strong>Best:</strong> ${stats.bestTotal} &nbsp;|&nbsp;
+       <strong>Avg auto:</strong> ${stats.avgAuto} &nbsp;|&nbsp;
+       <strong>Avg teleop:</strong> ${stats.avgTeleop} &nbsp;|&nbsp;
+       <strong>Entries:</strong> ${stats.played}</p>
+    <h3>Scrimmage Scores</h3>
+    ${buildTable(rows)}
   `;
 }
 
