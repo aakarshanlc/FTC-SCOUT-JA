@@ -17,7 +17,6 @@
   .error { color: #b00020; font-weight: bold; }
   .status { color: #666; font-style: italic; }
 
-  /* top-level site tabs */
   #tabs { display: flex; gap: .5rem; border-bottom: 2px solid #d32f2f; margin: 1rem 0 1.5rem; }
   .tab {
     padding: .6rem 1.6rem; font-size: 1rem; cursor: pointer;
@@ -29,7 +28,7 @@
   .pane { display: none; }
   .pane.active { display: block; }
 
-  /* clickable team lists (shared by both tabs) */
+  /* clickable team lists */
   .clickable tbody tr { cursor: pointer; }
   .clickable tbody tr:hover { background: #ffecec; }
   .clickable tbody tr.selected { background: #ffd6d6; }
@@ -93,7 +92,7 @@ async function loadTab(name) {
     .filter(r => Object.values(r).some(v => v !== ""));
 }
 
-// lowercase + trim every header so lookups are case-insensitive
+// lowercase + trim every header so lookups are case insensitive
 function normalizeRow(row) {
   const out = {};
   for (const key in row) {
@@ -124,7 +123,7 @@ async function loadAll() {
     status.innerHTML = `<span class="error">${err.message}</span>`;
   }
 
-  // Scrimmages tab — loaded separately so a missing tab can't break the Championship view
+  // Scrimmages tab loaded separately so a missing tab can't break the Championship view
   const scrimStatus = document.getElementById("scrimStatus");
   try {
     scrimmages = await loadTab(SCRIMMAGE_TAB);
