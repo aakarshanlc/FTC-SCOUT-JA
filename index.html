@@ -120,9 +120,18 @@ const SHEET_ID = "1PWdTIUPcPH_HxHqmH5rk8OSlTxkeGzbelaZv0GlFBwA";
 const SCRIMMAGE_TAB = "Scrimmages";   // name of the scrimmages tab in the Google Sheet
 const REFRESH_MS = 30000;
 
+// FTCScout API
+const FTC_API = "https://api.ftcscout.org/rest/v1";
+const REGION = "JM";       // FTCScout region code — "JM" = all Jamaican teams
+const SEASON = 2026;       // used if you also set EVENT_CODE below
+const EVENT_CODE = "";     // pull the roster of one event
+const ROSTER_FROM_API = true;  // show API teams in the Championship table even with no sheet rows
+const API_INFO_FIRST = true;   // true = API name/org shows over the sheet; false = sheet shows
+
 let teams = [], robots = [], matches = [], scrimmages = [];
-const status = { champ: "Loading data…", scrim: "Loading scrimmages…" };
-const errors = { champ: "", scrim: "" };
+let apiTeams = new Map();   // team number (string) -> { name, org, loc } from FTCScout
+const status = { champ: "Loading data…", scrim: "Loading scrimmages…", api: "" };
+const errors = { champ: "", scrim: "", api: "" };
 let lastUpdated = null;
 
 const ui = {
@@ -170,6 +179,52 @@ const col = (row, ...words) => {
 // all rows whose "number" column matches the given team number
 const rowsFor = (rows, num) => rows.filter(r => col(r, "number") === String(num).trim());
 
+// FTCScout API
+function teamFields(p) {
+  const inner = (p && typeof p === "object" && p.team) ? p.team : (p || {});
+  return {
+    number: String(inner.number ?? inner.teamNumber ?? "").trim(),
+    name: inner.name || "",
+    org: inner.schoolName || inner.organization || "",
+    loc: [inner.city, inner.state, inner.country].filter(Boolean).join(", ")
+  };
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} from ${url.replace(FTC_API, "")}`);
+  return res.json();
+}
+
+async function loadApiTeams() {
+  if (!REGION && !EVENT_CODE) { status.api = ""; return; }
+  try {
+    const next = new Map();
+    if (REGION) {
+      const list = await fetchJson(`${FTC_API}/teams/search?region=${encodeURIComponent(REGION)}&limit=500`);
+      list.forEach(p => {
+        const f = teamFields(p);
+        if (f.number) next.set(f.number, f);
+      });
+    }
+    if (EVENT_CODE) {
+      const teps = await fetchJson(`${FTC_API}/events/${SEASON}/${encodeURIComponent(EVENT_CODE)}/teams`);
+      teps.forEach(p => {
+        const f = teamFields(p);
+        if (f.number && !next.has(f.number)) next.set(f.number, { name: "", org: "", loc: "" });
+      });
+    }
+    if (!next.size) throw new Error("no teams returned — check REGION / EVENT_CODE");
+    apiTeams = next;
+    errors.api = "";
+    status.api = `FTCScout: ${apiTeams.size} teams loaded for region "${REGION || "event " + EVENT_CODE}" — numbers, names & organizations auto-filled`;
+  } catch (e) {
+    status.api = "";
+    errors.api = `FTCScout API: ${e.message} — using sheet data instead.`;
+  }
+  render();
+}
+
 async function loadAll() {
   // loaded independently so a missing scrimmage tab can't break the championship view
   const champ = (async () => {
@@ -198,17 +253,30 @@ function agg(rows, field) {
   return { count: v.length, avg: r1(v.reduce((a, b) => a + b, 0) / v.length), best: Math.max(...v), vals: v };
 }
 
-// every team seen anywhere in the sheet, with the best name/org we can find
 function allTeams() {
   const map = new Map();
+  const put = (n, name, org) => {
+    const e = map.get(n) || { number: n, name: "", org: "" };
+    if (!e.name) e.name = name;
+    if (!e.org) e.org = org;
+    map.set(n, e);
+  };
   [teams, scrimmages, matches, robots].forEach(rows => rows.forEach(r => {
     const n = col(r, "number");
-    if (!n) return;
-    const e = map.get(n) || { number: n, name: "", org: "" };
-    if (!e.name) e.name = col(r, "name");
-    if (!e.org) e.org = col(r, "organization", "org");
-    map.set(n, e);
+    if (n) put(n, col(r, "name"), col(r, "organization", "org"));
   }));
+  apiTeams.forEach((info, n) => {
+    const e = map.get(n) || { number: n, name: "", org: "", loc: "" };
+    if (info.loc) e.loc = info.loc;
+    if (API_INFO_FIRST) {
+      if (info.name) e.name = info.name;
+      if (info.org) e.org = info.org;
+    } else {
+      if (!e.name && info.name) e.name = info.name;
+      if (!e.org && info.org) e.org = info.org;
+    }
+    map.set(n, e);
+  });
   return [...map.values()];
 }
 
@@ -218,6 +286,7 @@ function rankBy(rows, key) {
 
 function champRows() {
   const nums = new Set([...teams, ...matches].map(r => col(r, "number")).filter(Boolean));
+  if (ROSTER_FROM_API) apiTeams.forEach((_, n) => nums.add(n));
   const info = new Map(allTeams().map(t => [t.number, t]));
   const rows = [...nums].map(n => {
     const s = agg(rowsFor(matches, n), "total");
@@ -239,11 +308,13 @@ function scrimRows() {
     if (!by.has(n)) by.set(n, []);
     by.get(n).push(r);
   });
+  const infos = new Map(allTeams().map(t => [t.number, t]));
   const rows = [...by].map(([n, rs]) => {
     const t = agg(rs, "total"), a = agg(rs, "auto"), p = agg(rs, "teleop"), f = agg(rs, "flower");
     const last = rs[rs.length - 1];
+    const i = infos.get(n) || {};
     return {
-      number: parseInt(n) || n, name: col(last, "name"), org: col(last, "organization", "org"),
+      number: parseInt(n) || n, name: i.name || col(last, "name"), org: i.org || col(last, "organization", "org"),
       drivetrain: [...rs].reverse().map(r => col(r, "drivetrain")).find(Boolean) || "",
       auto: a.avg, teleop: p.avg, flower: f.avg, avgTotal: t.avg, best: t.best, played: t.count, rank: null
     };
@@ -309,7 +380,7 @@ const scrimCols = [
   { key: "played", label: "Entries", num: true }
 ];
 
-// plain table of raw sheet rows (team page), hiding the team-number column
+// plain table of raw sheet rows (team page), hiding the team number column
 function rawTable(rows) {
   if (!rows.length) return `<p class="empty">No data yet.</p>`;
   const nk = Object.keys(rows[0]).find(k => k.includes("NUMBER"));
@@ -347,7 +418,7 @@ function pageTeams() {
   const q = ui.teamQuery.trim().toLowerCase();
   let rows = champRows();
   if (q) rows = rows.filter(r => String(r.number).includes(q) || r.name.toLowerCase().includes(q) || r.org.toLowerCase().includes(q));
-  return `${banner("champ")}
+  return `${banner("champ")}${banner("api")}
     <div class="pagehead"><h1>Championship Teams</h1><span class="muted">${rows.length} teams</span></div>
     <input id="teamQuery" class="filter" placeholder="Filter by number, name or organization…" value="${esc(ui.teamQuery)}"
            oninput="ui.teamQuery = this.value; render()">
@@ -404,7 +475,7 @@ function pageTeam(n) {
   return `<span class="back" onclick="history.back()">← Back</span>
     <div class="teamhead">
       <span class="big">${esc(n)}</span><span class="nm">${esc(info.name || "Unknown team")}</span>
-      <div class="muted">${esc(info.org)}</div>
+      <div class="muted">${esc([info.org, info.loc].filter(Boolean).join(" · "))}</div>
     </div>
     <div class="stats">
       ${statCard("Avg match score", ms.avg, mine && mine.rank ? `Rank #${mine.rank} of ${ranked}` : "")}
@@ -426,7 +497,7 @@ function route() {
 }
 
 function render() {
-  // keep focus + caret in a filter box / dropdown across re-renders (data refresh, typing)
+  // keep focus and caret in a filter box / dropdown across re-renders
   const a = document.activeElement;
   const focusId = a && a.closest("#app") ? a.id : "";
   const pos = focusId && typeof a.selectionStart === "number" ? a.selectionStart : null;
@@ -484,7 +555,8 @@ function toggleTheme() {
 })();
 
 render();
-loadAll();
+loadApiTeams();   // from FTCScout
+loadAll();        // sheet tabs, then re-loads every REFRESH_MS
 setInterval(loadAll, REFRESH_MS);
 </script>
 </body>
