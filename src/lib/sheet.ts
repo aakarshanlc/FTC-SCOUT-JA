@@ -1,9 +1,7 @@
 import Papa from "papaparse";
 
-/** One normalized row from a Google Sheet tab: upper-cased header -> trimmed value. */
 export type Row = Record<string, string>;
 
-/** Best-effort identity for a team, merged from every tab that mentions it. */
 export interface TeamInfo {
   number: string;
   name: string;
@@ -42,8 +40,8 @@ export const REFRESH_MS = 30_000;
 
 /**
  * Fetch one tab of the scouting sheet as CSV and normalize it.
- * The sheet must be shared as "Anyone with the link" for the gviz endpoint to answer.
- */
+ * The sheet must be shared as "Anyone with the link" for the gviz endpoint to answer.*/
+
 export async function loadTab(name: string): Promise<Row[]> {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
   const res = await fetch(url);
@@ -58,7 +56,6 @@ export async function loadTab(name: string): Promise<Row[]> {
     .filter((r) => Object.values(r).some((v) => v !== ""));
 }
 
-/** Uppercase and trim every header so lookups are case insensitive. */
 export function normalizeRow(row: Record<string, unknown>): Row {
   const out: Row = {};
   for (const key in row) {
@@ -72,6 +69,7 @@ export function normalizeRow(row: Record<string, unknown>): Row {
  * Value of the first column whose header contains any of the given words.
  * Headers are normalized to upper case, so the keywords are compared upper-cased too.
  */
+
 export function col(row: Row, ...words: string[]): string {
   for (const k in row)
     if (words.some((w) => k.includes(w.toUpperCase()))) return row[k];
@@ -82,7 +80,7 @@ export function col(row: Row, ...words: string[]): string {
 export const rowsFor = (rows: Row[], num: string): Row[] =>
   rows.filter((r) => col(r, "number") === String(num).trim());
 
-// ---------- formatting ----------
+// formatting
 
 export const toNum = (v: unknown): number => {
   const x = parseFloat(String(v ?? "").replace(/[^0-9.-]/g, ""));
@@ -102,7 +100,7 @@ export const esc = (s: unknown): string =>
 export const titleCase = (s: string): string =>
   s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
-// ---------- aggregation ----------
+// aggregation 
 
 export interface Agg {
   count: number;
@@ -122,7 +120,6 @@ export function agg(rows: Row[], field: string): Agg {
   };
 }
 
-/** Every team seen anywhere in the sheet, with the best name/org we can find. */
 export function allTeams(sets: Row[][]): TeamInfo[] {
   const map = new Map<string, TeamInfo>();
   for (const rows of sets) {
@@ -138,7 +135,7 @@ export function allTeams(sets: Row[][]): TeamInfo[] {
   return [...map.values()];
 }
 
-/** Rank 1..n over the rows that have matches played, best score first. */
+//Rank 1..n over the rows that have matches played, best score first.
 function withRanks<T extends { played: number; rank: number | null }>(
   rows: T[],
   score: (r: T) => number | null,
@@ -152,7 +149,6 @@ function withRanks<T extends { played: number; rank: number | null }>(
   return rows;
 }
 
-/** One row per team that appears in the Teams or Matches tabs, ranked by average. */
 export function champRows(teams: Row[], matches: Row[], infos: TeamInfo[]): ChampRow[] {
   const nums = new Set([...teams, ...matches].map((r) => col(r, "number")).filter(Boolean));
   const info = new Map(infos.map((t) => [t.number, t]));
@@ -179,7 +175,7 @@ export const scrimNames = (scrimmages: Row[]): string[] => [
 export const scrimBase = (scrimmages: Row[], event: string): Row[] =>
   event ? scrimmages.filter((r) => col(r, "scrimmage") === event) : scrimmages;
 
-/** One row per team within the (optionally filtered) scrimmage set, ranked by average total. */
+// One row per team within the filtered scrimmage set, ranked by average total.
 export function scrimRows(scrimmages: Row[], event: string): ScrimRow[] {
   const by = new Map<string, Row[]>();
   for (const r of scrimBase(scrimmages, event)) {
@@ -211,7 +207,7 @@ export function scrimRows(scrimmages: Row[], event: string): ScrimRow[] {
   return withRanks(rows, (r) => r.avgTotal);
 }
 
-// ---------- sorting ----------
+// sorting 
 
 export interface SortState {
   key: string;
@@ -232,14 +228,14 @@ export function sortRows<T extends Record<string, unknown>>(rows: T[], { key, di
   });
 }
 
-/** Next sort state after clicking a column header. */
+// Next sort state after clicking a column header
 export function nextSort(current: SortState, key: string): SortState {
   if (current.key === key) return { key, dir: current.dir === 1 ? -1 : 1 };
   const textKeys = ["name", "org", "drivetrain", "number", "rank"];
   return { key, dir: (textKeys.includes(key) ? 1 : -1) as 1 | -1 };
 }
 
-/** Column keys of a raw tab, hiding the team-number column (shown in the header instead). */
+// olumn keys of a raw tab, hiding the team number column
 export const rawColumns = (rows: Row[]): string[] => {
   if (!rows.length) return [];
   const keys = Object.keys(rows[0]);

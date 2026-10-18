@@ -28,7 +28,7 @@
   .links a { padding: .4rem .8rem; border-radius: 8px; color: var(--muted); font-weight: 600; }
   .links a:hover { background: var(--panel2); color: var(--text); }
   .links a.active { background: var(--accent-soft); color: var(--accent); }
-  .spacer { flex: 1; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: .6rem; }
   .search { position: relative; }
   .search input { width: 260px; max-width: 100%; padding: .5rem .8rem; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); }
   .search input:focus { outline: 2px solid var(--accent); }
@@ -36,7 +36,28 @@
   #gresults[hidden] { display: none; }
   .hit { padding: .5rem .8rem; cursor: pointer; }
   .hit:hover { background: var(--accent-soft); }
-  .icon-btn { border: 1px solid var(--border); background: var(--panel2); color: var(--text); border-radius: 8px; padding: .45rem .7rem; cursor: pointer; }
+  /* theme toggle — circular icon button, pinned to the far right of the navbar */
+  .theme-btn { position: relative; flex: none; width: 2.4rem; height: 2.4rem; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 999px; background: var(--panel2); color: var(--muted); cursor: pointer; transition: color .2s, background-color .2s, border-color .2s, transform .15s; -webkit-tap-highlight-color: transparent; }
+  .theme-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .theme-btn:active { transform: scale(.9); }
+  .theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .theme-btn svg { position: absolute; inset: 0; margin: auto; width: 1.2rem; height: 1.2rem; transition: opacity .25s ease, transform .4s ease; }
+  .theme-btn .ico-sun { opacity: 1; transform: rotate(0) scale(1); }
+  .theme-btn .ico-moon { opacity: 0; transform: rotate(-90deg) scale(.4); }
+  :root[data-theme="dark"] .theme-btn .ico-sun { opacity: 0; transform: rotate(90deg) scale(.4); }
+  :root[data-theme="dark"] .theme-btn .ico-moon { opacity: 1; transform: rotate(0) scale(1); }
+
+  /* FTCScout status — floating "i" button, bottom right under the table */
+  #apiinfo { position: fixed; right: 1rem; bottom: 1rem; z-index: 40; display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; }
+  #apipanel { max-width: 340px; padding: .8rem 1rem; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.25); font-size: .85rem; color: var(--muted); }
+  #apipanel[hidden] { display: none; }
+  #apipanel h4 { margin: 0 0 .4rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  #apipanel .row + .row { margin-top: .5rem; }
+  #apipanel .row.err { color: var(--accent); font-weight: 600; font-style: normal; }
+  #infobtn { position: relative; width: 2.2rem; height: 2.2rem; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); font-family: Georgia, serif; font-style: italic; font-weight: 700; font-size: 1.05rem; line-height: 1; cursor: pointer; box-shadow: var(--shadow); }
+  #infobtn:hover { color: var(--accent); border-color: var(--accent); }
+  #infobtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #apiinfo.has-err #infobtn::after { content: ""; position: absolute; top: -.1rem; right: -.1rem; width: .55rem; height: .55rem; border-radius: 999px; background: var(--accent); border: 1px solid var(--panel); }
 
   /* layout */
   main { max-width: 1100px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
@@ -98,14 +119,18 @@
       <a href="#/teams" data-page="teams">Championship</a>
       <a href="#/scrimmages" data-page="scrimmages">Scrimmages</a>
     </div>
-    <div class="spacer"></div>
-    <div class="search">
-      <input id="gsearch" type="search" placeholder="Search team # or name…" autocomplete="off"
-             oninput="gsearch()" onfocus="gsearch()" onkeydown="gkey(event)"
-             onblur="setTimeout(() => $('gresults').hidden = true, 150)">
-      <div id="gresults" hidden></div>
+    <div class="nav-right">
+      <div class="search">
+        <input id="gsearch" type="search" placeholder="Search team # or name…" autocomplete="off"
+               oninput="gsearch()" onfocus="gsearch()" onkeydown="gkey(event)"
+               onblur="setTimeout(() => $('gresults').hidden = true, 150)">
+        <div id="gresults" hidden></div>
+      </div>
+      <button class="theme-btn" id="themeBtn" type="button" onclick="toggleTheme()">
+        <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
     </div>
-    <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark mode">🌓</button>
   </div>
 </nav>
 
@@ -113,6 +138,11 @@
   <div id="app"></div>
   <p class="foot" id="updated"></p>
 </main>
+
+<div id="apiinfo">
+  <div id="apipanel" hidden></div>
+  <button id="infobtn" onclick="toggleApiInfo()" title="FTCScout status" aria-label="FTCScout status">i</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
@@ -123,20 +153,21 @@ const REFRESH_MS = 30000;
 // FTCScout API
 const FTC_API = "https://api.ftcscout.org/rest/v1";
 const REGION = "JM";       // FTCScout region code — "JM" = all Jamaican teams
-const SEASON = 2026;       // used if you also set EVENT_CODE below
-const EVENT_CODE = "";     // pull the roster of one event
+const SEASON = 2026;       // season year of your championship
+const EVENT_CODE = "JMCMP"; // championship event code — API match scores come from here
 const ROSTER_FROM_API = true;  // show API teams in the Championship table even with no sheet rows
 const API_INFO_FIRST = true;   // true = API name/org shows over the sheet; false = sheet shows
 
 let teams = [], robots = [], matches = [], scrimmages = [];
 let apiTeams = new Map();   // team number (string) -> { name, org, loc } from FTCScout
-const status = { champ: "Loading data…", scrim: "Loading scrimmages…", api: "" };
-const errors = { champ: "", scrim: "", api: "" };
+let apiMatches = [];        // match rows from FTCScout — one per team per match; the sheet is the fallback
+const status = { champ: "Loading data…", scrim: "Loading scrimmages…", apiTeams: "", apiMatches: "" };
+const errors = { champ: "", scrim: "", apiTeams: "", apiMatches: "" };
 let lastUpdated = null;
 
 const ui = {
   sort: { teams: { key: "rank", dir: 1 }, scrim: { key: "rank", dir: 1 } },
-  teamQuery: "", scrimEvent: "", teamTab: "overview"
+  teamQuery: "", scrimEvent: "", teamTab: "overview", apiInfoOpen: false
 };
 
 const $ = id => document.getElementById(id);
@@ -197,7 +228,7 @@ async function fetchJson(url) {
 }
 
 async function loadApiTeams() {
-  if (!REGION && !EVENT_CODE) { status.api = ""; return; }
+  if (!REGION && !EVENT_CODE) { status.apiTeams = ""; return; }
   try {
     const next = new Map();
     if (REGION) {
@@ -214,16 +245,62 @@ async function loadApiTeams() {
         if (f.number && !next.has(f.number)) next.set(f.number, { name: "", org: "", loc: "" });
       });
     }
-    if (!next.size) throw new Error("no teams returned — check REGION / EVENT_CODE");
+    if (!next.size) throw new Error("no teams returned");
     apiTeams = next;
-    errors.api = "";
-    status.api = `FTCScout: ${apiTeams.size} teams loaded for region "${REGION || "event " + EVENT_CODE}" — numbers, names & organizations auto-filled`;
+    errors.apiTeams = "";
+    status.apiTeams = `FTCScout: ${apiTeams.size} teams loaded for region "${REGION || "event " + EVENT_CODE}" — numbers, names & organizations auto-filled`;
   } catch (e) {
-    status.api = "";
-    errors.api = `FTCScout API: ${e.message} — using sheet data instead.`;
+    status.apiTeams = "";
+    errors.apiTeams = `FTCScout API: ${e.message} — using sheet data instead.`;
   }
   render();
 }
+
+// FTCScout publishes alliance-level scores only, so each team row carries its alliance's points.
+function apiMatchRows(list) {
+  const label = m =>
+    m.tournamentLevel === "Quals" ? `Q${m.id}` :
+    `${m.tournamentLevel === "DoubleElim" ? "DE" : m.tournamentLevel || "Match"} #${m.id}`;
+  const rows = [];
+  for (const m of list) {
+    if (!m.hasBeenPlayed || !m.scores || !m.scores.red || !m.scores.blue) continue;
+    for (const t of m.teams || []) {
+      const s = m.scores[t.alliance === "Blue" ? "blue" : "red"];
+      const o = m.scores[t.alliance === "Blue" ? "red" : "blue"];
+      if (!s || s.totalPoints == null) continue;
+      rows.push({
+        NUMBER: String(t.teamNumber),
+        MATCH: label(m),
+        LEVEL: titleCase(m.tournamentLevel || ""),
+        ALLIANCE: t.alliance || "",
+        AUTO: s.autoPoints ?? "",
+        TOTAL: s.totalPointsNp ?? s.totalPoints, // alliance score, penalties excluded
+        RESULT: s.totalPoints > o.totalPoints ? "Win" : s.totalPoints < o.totalPoints ? "Loss" : "Tie"
+      });
+    }
+  }
+  return rows;
+}
+
+async function loadApiMatches() {
+  if (!EVENT_CODE) return;
+  try {
+    const list = await fetchJson(`${FTC_API}/events/${SEASON}/${encodeURIComponent(EVENT_CODE)}/matches`);
+    apiMatches = apiMatchRows(list);
+    errors.apiMatches = "";
+    status.apiMatches = apiMatches.length
+      ? `FTCScout: ${apiMatches.length} match entries for "${SEASON} ${EVENT_CODE}" — championship scores come from the API`
+      : `FTCScout: no match results for "${SEASON} ${EVENT_CODE}" yet — using the hand-typed sheet Matches tab`;
+  } catch (e) {
+    apiMatches = [];
+    status.apiMatches = "";
+    errors.apiMatches = `FTCScout matches: ${e.message} — using the hand-typed sheet Matches tab.`;
+  }
+  render();
+}
+
+// championship match rows: FTCScout first, hand-typed sheet as fallback
+const champMatches = () => apiMatches.length ? apiMatches : matches;
 
 async function loadAll() {
   // loaded independently so a missing scrimmage tab can't break the championship view
@@ -285,11 +362,12 @@ function rankBy(rows, key) {
 }
 
 function champRows() {
-  const nums = new Set([...teams, ...matches].map(r => col(r, "number")).filter(Boolean));
+  const mm = champMatches();
+  const nums = new Set([...teams, ...mm].map(r => col(r, "number")).filter(Boolean));
   if (ROSTER_FROM_API) apiTeams.forEach((_, n) => nums.add(n));
   const info = new Map(allTeams().map(t => [t.number, t]));
   const rows = [...nums].map(n => {
-    const s = agg(rowsFor(matches, n), "total");
+    const s = agg(rowsFor(mm, n), "total");
     const i = info.get(n) || {};
     return { number: parseInt(n) || n, name: i.name || "", org: i.org || "", avg: s.avg, best: s.best, played: s.count, rank: null };
   });
@@ -323,7 +401,7 @@ function scrimRows() {
   return rows;
 }
 
-// sorting + table rendering
+// sorting table rendering
 function sortRows(rows, { key, dir }) {
   const empty = v => v === null || v === undefined || v === "";
   return [...rows].sort((a, b) => {
@@ -417,8 +495,8 @@ const statCard = (label, value, sub) =>
 function pageTeams() {
   const q = ui.teamQuery.trim().toLowerCase();
   let rows = champRows();
-  if (q) rows = rows.filter(r => String(r.number).includes(q) || r.name.toLowerCase().includes(q) || r.org.toLowerCase().includes(q));
-  return `${banner("champ")}${banner("api")}
+  if (q) rows = rows.filter(r => String(r.number).toLowerCase().includes(q) || r.name.toLowerCase().includes(q) || r.org.toLowerCase().includes(q));
+  return `${banner("champ")}
     <div class="pagehead"><h1>Championship Teams</h1><span class="muted">${rows.length} teams</span></div>
     <input id="teamQuery" class="filter" placeholder="Filter by number, name or organization…" value="${esc(ui.teamQuery)}"
            oninput="ui.teamQuery = this.value; render()">
@@ -449,7 +527,7 @@ function setTab(t) { ui.teamTab = t; render(); }
 
 function pageTeam(n) {
   const info = allTeams().find(t => t.number === n) || { name: "", org: "" };
-  const mrows = rowsFor(matches, n), srows = rowsFor(scrimmages, n);
+  const mrows = rowsFor(champMatches(), n), srows = rowsFor(scrimmages, n);
   const robot = rowsFor(robots, n)[0];
   const ms = agg(mrows, "total"), ss = agg(srows, "total");
   const champ = champRows();
@@ -506,6 +584,7 @@ function render() {
   $("app").innerHTML = page === "team" ? pageTeam(arg) : page === "scrimmages" ? pageScrims() : pageTeams();
   document.querySelectorAll(".links a").forEach(l => l.classList.toggle("active", l.dataset.page === page));
   $("updated").textContent = lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()} · refreshes every ${REFRESH_MS / 1000}s` : "";
+  renderApiInfo();
 
   if (focusId && $(focusId)) {
     const el = $(focusId);
@@ -522,8 +601,8 @@ function gsearch() {
   const box = $("gresults");
   if (!q) { box.innerHTML = ""; box.hidden = true; return; }
   const hits = allTeams()
-    .filter(t => t.number.includes(q) || t.name.toLowerCase().includes(q))
-    .sort((a, b) => ((b.number === q) - (a.number === q)) || (parseInt(a.number) - parseInt(b.number)))
+    .filter(t => String(t.number).toLowerCase().includes(q) || t.name.toLowerCase().includes(q))
+    .sort((a, b) => ((String(b.number).toLowerCase() === q) - (String(a.number).toLowerCase() === q)) || ((parseInt(a.number) || 0) - (parseInt(b.number) || 0)))
     .slice(0, 8);
   box.innerHTML = hits.length
     ? hits.map(t => `<div class="hit" data-n="${esc(t.number)}" onmousedown="openTeam(this.dataset.n)"><strong class="tnum">${esc(t.number)}</strong> ${esc(t.name)}</div>`).join("")
@@ -541,7 +620,15 @@ function gkey(e) {
 }
 
 // THEME
-function applyTheme(t) { document.documentElement.dataset.theme = t; }
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  const btn = $("themeBtn");
+  if (btn) {
+    btn.title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    btn.setAttribute("aria-label", btn.title);
+    btn.setAttribute("aria-pressed", String(t === "dark"));
+  }
+}
 function toggleTheme() {
   const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   applyTheme(t);
@@ -554,10 +641,38 @@ function toggleTheme() {
   applyTheme(t);
 })();
 
+// FTCScout STATUS MENU
+function apiInfoHTML() {
+  const rows = [];
+  if (status.apiTeams) rows.push(`<div class="row">${esc(status.apiTeams)}</div>`);
+  if (errors.apiTeams) rows.push(`<div class="row err">${esc(errors.apiTeams)}</div>`);
+  if (status.apiMatches) rows.push(`<div class="row">${esc(status.apiMatches)}</div>`);
+  if (errors.apiMatches) rows.push(`<div class="row err">${esc(errors.apiMatches)}</div>`);
+  if (!rows.length) rows.push(`<div class="row">No FTCScout status yet.</div>`);
+  return `<h4>FTCScout</h4>${rows.join("")}`;
+}
+
+function renderApiInfo() {
+  const info = $("apiinfo"), panel = $("apipanel");
+  if (!info || !panel) return;
+  panel.innerHTML = apiInfoHTML();
+  panel.hidden = !ui.apiInfoOpen;
+  info.classList.toggle("has-err", Boolean(errors.apiTeams || errors.apiMatches));
+}
+
+function toggleApiInfo() { ui.apiInfoOpen = !ui.apiInfoOpen; renderApiInfo(); }
+
+document.addEventListener("click", (e) => {
+  if (!ui.apiInfoOpen || (e.target.closest && e.target.closest("#apiinfo"))) return;
+  ui.apiInfoOpen = false;
+  renderApiInfo();
+});
+
 render();
-loadApiTeams();   // from FTCScout
-loadAll();        // sheet tabs, then re-loads every REFRESH_MS
-setInterval(loadAll, REFRESH_MS);
+loadApiTeams(); // roster from FTCScout
+loadApiMatches(); // match scores from FTCScout — the sheet Matches tab is the fallback
+loadAll(); // sheet tabs, then re loads every REFRESH_MS
+setInterval(() => { loadAll(); loadApiMatches(); }, REFRESH_MS);
 </script>
 </body>
 </html>

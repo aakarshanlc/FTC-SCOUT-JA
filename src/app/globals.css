@@ -125,13 +125,64 @@ nav {
 .hit:hover {
   background: var(--accent-soft);
 }
-.icon-btn {
-  border: 1px solid var(--border);
-  background: var(--panel2);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 0.45rem 0.7rem;
+/* theme switch — gray track, blue when on; dark palette under [data-theme="dark"] */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 3.5rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #d1d5db;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s;
+}
+.theme-switch:has(input:checked) {
+  background: #3b82f6;
+}
+:root[data-theme="dark"] .theme-switch {
+  background: #4b5563;
+}
+:root[data-theme="dark"] .theme-switch:has(input:checked) {
+  background: #2563eb;
+}
+.theme-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+.theme-switch .knob {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0.25rem;
+  width: 1.5rem;
+  border-radius: 999px;
+  background: #d1d5db;
+  box-shadow: inset 0 0 0 6px #fff;
+  transition: all 0.2s;
+}
+.theme-switch input:checked ~ .knob {
+  left: 2rem;
+  width: 0.5rem;
+  background: #fff;
+  box-shadow: inset 0 0 0 6px transparent;
+}
+:root[data-theme="dark"] .theme-switch .knob {
+  background: #4b5563;
+  box-shadow: inset 0 0 0 6px #111827;
+}
+:root[data-theme="dark"] .theme-switch input:checked ~ .knob {
+  background: #111827;
+}
+.theme-switch:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* layout */

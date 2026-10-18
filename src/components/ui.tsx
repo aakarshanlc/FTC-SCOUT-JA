@@ -14,7 +14,7 @@ import {
 } from "@/lib/sheet";
 import { useScout } from "./ScoutProvider";
 
-// ---------- banners, cards, footer ----------
+// banners, cards, footer
 
 export function Banner({ status, error }: { status: string; error: string }) {
   if (error) return <div className="banner error">{error}</div>;
@@ -42,7 +42,7 @@ export function UpdatedLine() {
   return <>{`Updated ${lastUpdated.toLocaleTimeString()} · refreshes every 30s`}</>;
 }
 
-// ---------- sortable table ----------
+// sortable table
 
 export interface Column<T extends Record<string, unknown>> {
   key: string;
@@ -107,7 +107,6 @@ export const RankCell = ({ rank }: { rank: number | null }) =>
 
 export const TeamCell = ({ number }: { number: string }) => <strong className="tnum">{number}</strong>;
 
-/** Rows of a team's raw tab, minus the number column. */
 export function RawTable({ rows }: { rows: Row[] }) {
   if (!rows.length) return <Empty>No data yet.</Empty>;
   const cols = rawColumns(rows);
@@ -138,7 +137,7 @@ export function RawTable({ rows }: { rows: Row[] }) {
   );
 }
 
-// ---------- charts ----------
+// charts 
 
 export function Chart({ title, vals, labels }: { title: string; vals: number[]; labels: string[] }) {
   if (!vals.length) return null;
@@ -185,7 +184,7 @@ export function Chart({ title, vals, labels }: { title: string; vals: number[]; 
   );
 }
 
-// ---------- robot info ----------
+// robot info 
 
 export function KeyValue({ k, v }: { k: string; v: string }) {
   return (

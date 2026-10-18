@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-/** Scrolls to the top on route change, mirroring the SPA's hash-change behaviour. */
 export default function ScrollToTop() {
   const pathname = usePathname();
   useEffect(() => {

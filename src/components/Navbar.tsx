@@ -121,15 +121,15 @@ export default function Navbar() {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={toggleTheme}
-          title="Toggle dark mode"
-          aria-label="Toggle dark mode"
-        >
-          🌓
-        </button>
+        <label className="theme-switch" title="Toggle dark mode">
+          <input
+            type="checkbox"
+            checked={theme === "dark"}
+            onChange={toggleTheme}
+            aria-label="Toggle dark mode"
+          />
+          <span className="knob" />
+        </label>
       </div>
     </nav>
   );

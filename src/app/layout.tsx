@@ -11,7 +11,6 @@ export const metadata: Metadata = {
     "FTC Scouting Dashboard — championship rankings, scrimmage results, and per-team scouting for FIRST Tech Challenge teams.",
 };
 
-// Applies the stored (or system) theme before paint so there is no flash of the wrong theme.
 const themeScript = `(function(){try{var t=localStorage.getItem("ftcTheme");if(!t){t=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";}document.documentElement.dataset.theme=t;}catch(e){}})();`;
 
 export default function RootLayout({
