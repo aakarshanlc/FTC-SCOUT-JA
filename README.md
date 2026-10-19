@@ -4,14 +4,14 @@ FTC Scouting is a scouting dashboard for FIRST Tech Challenge (FTC): championshi
 
 ## Run locally
 
-Use [Bun](https://bun.sh/) with the checked-in `bun.lock`:
+Use npm with the checked-in `package-lock.json`:
 
 ```bash
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
-Open the local URL printed by Next.js (usually `http://localhost:3000`). For a production build, run `bun run build`, then `bun run start`.
+Open the local URL printed by Next.js (usually `http://localhost:3000`). For a production build, run `npm run build`, then `npm start`.
 
 ## Pages
 
@@ -43,12 +43,12 @@ Implementation notes: [src/lib/sheet.ts](./src/lib/sheet.ts) holds fetching, nor
 ## Validate
 
 ```bash
-bun run check   # TypeScript
-bun run build   # production build
+npm run check   # TypeScript
+npm run build   # production build
 ```
 
 ## Deploy on Vercel
 
-Import the repository into Vercel and set the production branch to `main`. Vercel should detect Next.js automatically. Use the install command `bun install` if the project is configured for Bun; the build command is `bun run build`, and the output is the Next.js default. Check the Vercel deployment log for the commit SHA and build errors when a GitHub push does not appear on the live site.
+Import the repository into Vercel and set the production branch to `main`. Vercel should detect Next.js automatically. The install command is `npm install` and the build command is `npm run build`; the output is the Next.js default. Check the Vercel deployment log for the commit SHA and build errors when a GitHub push does not appear on the live site.
 
 The Vercel project and its Git integration are configured in the Vercel dashboard; this repository has no checked-in `vercel.json` or project-link metadata.

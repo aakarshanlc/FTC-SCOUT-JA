@@ -48,8 +48,8 @@ Tailwind stays available for utilities, but the component look (`.card`, `.stat`
 ## Validate before you push
 
 ```bash
-bun run check   # tsc --noEmit
-bun run build   # production build, also runs Next's TypeScript pass
+npm run check   # tsc --noEmit
+npm run build   # production build, also runs Next's TypeScript pass
 ```
 
-Both must pass. For behaviour, run `bun run dev` and check: the ranking table loads and sorts on header clicks, the filter narrows by number/name/organization, a row click opens the team page and Back returns, the navbar search's Enter opens the top hit, the event dropdown filters the scrimmage table, the 🌓 button switches themes and survives a reload, and a failing tab shows its error banner without blanking the other pages.
+Both must pass. For behaviour, run `npm run dev` and check: the ranking table loads and sorts on header clicks, the filter narrows by number/name/organization, a row click opens the team page and Back returns, the navbar search's Enter opens the top hit, the event dropdown filters the scrimmage table, the 🌓 button switches themes and survives a reload, and a failing tab shows its error banner without blanking the other pages.
