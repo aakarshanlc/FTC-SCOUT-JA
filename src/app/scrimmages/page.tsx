@@ -31,7 +31,6 @@ export default function ScrimmagesPage() {
     { key: "number", label: "Team", render: (r) => <TeamCell number={r.number} /> },
     { key: "name", label: "Name" },
     { key: "org", label: "Organization" },
-    { key: "drivetrain", label: "Drivetrain" },
     { key: "auto", label: "Avg Auto", num: true },
     { key: "teleop", label: "Avg Teleop", num: true },
     { key: "flower", label: "Avg Flower", num: true },

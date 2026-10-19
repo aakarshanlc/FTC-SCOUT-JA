@@ -30,9 +30,9 @@ All scouting data comes from the Google Sheet identified by `SHEET_ID` in [src/l
 | Tab | Read by | Expected columns |
 | --- | --- | --- |
 | `Teams` | Rankings, search | Number, Name, Organization |
-| `Robot` | Team pages | Number, plus any robot details (Drivetrain, Notes, …) |
+| `Robot` | Team pages | Number, plus any robot details (Notes, …) |
 | `Matches` | Rankings, team pages | Number, Total, Auto, Teleop, optional Match label |
-| `Scrimmages` | Scrimmages page | Scrimmage, Number, Name, Organization, Drivetrain, Auto, Teleop, Flower, Total |
+| `Scrimmages` | Scrimmages page | Scrimmage, Number, Name, Organization, Auto, Teleop, Flower, Total |
 
 Header matching is case-insensitive and ignores surrounding spaces: a column is found by the first header that *contains* a keyword (`number`, `name`, `organization`, `total`, …). Adding a column to a tab requires no code change unless you want it shown in a hand-built table.
 

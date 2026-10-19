@@ -393,7 +393,6 @@ function scrimRows() {
     const i = infos.get(n) || {};
     return {
       number: parseInt(n) || n, name: i.name || col(last, "name"), org: i.org || col(last, "organization", "org"),
-      drivetrain: [...rs].reverse().map(r => col(r, "drivetrain")).find(Boolean) || "",
       auto: a.avg, teleop: p.avg, flower: f.avg, avgTotal: t.avg, best: t.best, played: t.count, rank: null
     };
   });
@@ -417,7 +416,7 @@ function sortRows(rows, { key, dir }) {
 function setSort(group, key) {
   const s = ui.sort[group];
   if (s.key === key) s.dir *= -1;
-  else { s.key = key; s.dir = ["name", "org", "drivetrain", "number", "rank"].includes(key) ? 1 : -1; }
+  else { s.key = key; s.dir = ["name", "org", "number", "rank"].includes(key) ? 1 : -1; }
   render();
 }
 
@@ -449,7 +448,6 @@ const scrimCols = [
   { key: "number", label: "Team", render: teamCell },
   { key: "name", label: "Name" },
   { key: "org", label: "Organization" },
-  { key: "drivetrain", label: "Drivetrain" },
   { key: "auto", label: "Avg Auto", num: true },
   { key: "teleop", label: "Avg Teleop", num: true },
   { key: "flower", label: "Avg Flower", num: true },
@@ -462,7 +460,7 @@ const scrimCols = [
 function rawTable(rows) {
   if (!rows.length) return `<p class="empty">No data yet.</p>`;
   const nk = Object.keys(rows[0]).find(k => k.includes("NUMBER"));
-  const cols = Object.keys(rows[0]).filter(k => k !== nk);
+  const cols = Object.keys(rows[0]).filter(k => k !== nk && !k.includes("DRIVETRAIN"));
   const isNum = v => /^-?\d+(\.\d+)?$/.test(v);
   return `<div class="tablewrap"><table>
     <thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>
@@ -537,7 +535,7 @@ function pageTeam(n) {
   const tabs = [["overview", "Overview"], ["matches", `Matches (${mrows.length})`], ["scrims", `Scrimmages (${srows.length})`]];
   let body = "";
   if (ui.teamTab === "overview") {
-    const kv = robot ? Object.entries(robot).filter(([k, v]) => !k.includes("NUMBER") && v)
+    const kv = robot ? Object.entries(robot).filter(([k, v]) => !k.includes("NUMBER") && !k.includes("DRIVETRAIN") && v)
       .map(([k, v]) => `<div class="kv"><span>${esc(titleCase(k))}</span><strong>${esc(v)}</strong></div>`).join("") : "";
     body = `
       <div class="card pad"><h3>Robot Info</h3>${kv ? `<div class="kv-grid">${kv}</div>` : `<p class="empty" style="padding:0">No robot info yet.</p>`}</div>

@@ -45,7 +45,7 @@ function TeamView({ number }: { number: string }) {
   let body: React.ReactNode;
   if (tab === "overview") {
     const kv = robot
-      ? Object.entries(robot).filter(([k, v]) => !k.includes("NUMBER") && v)
+      ? Object.entries(robot).filter(([k, v]) => !k.includes("NUMBER") && !k.includes("DRIVETRAIN") && v)
       : [];
     body = (
       <>

@@ -24,7 +24,6 @@ export interface ScrimRow {
   number: string;
   name: string;
   org: string;
-  drivetrain: string;
   auto: number | null;
   teleop: number | null;
   flower: number | null;
@@ -194,7 +193,6 @@ export function scrimRows(scrimmages: Row[], event: string): ScrimRow[] {
       number: n,
       name: col(last, "name"),
       org: col(last, "organization", "org"),
-      drivetrain: [...rs].reverse().map((r) => col(r, "drivetrain")).find(Boolean) ?? "",
       auto: a.avg,
       teleop: p.avg,
       flower: f.avg,
@@ -231,7 +229,7 @@ export function sortRows<T extends Record<string, unknown>>(rows: T[], { key, di
 // Next sort state after clicking a column header
 export function nextSort(current: SortState, key: string): SortState {
   if (current.key === key) return { key, dir: current.dir === 1 ? -1 : 1 };
-  const textKeys = ["name", "org", "drivetrain", "number", "rank"];
+  const textKeys = ["name", "org", "number", "rank"];
   return { key, dir: (textKeys.includes(key) ? 1 : -1) as 1 | -1 };
 }
 
@@ -240,5 +238,5 @@ export const rawColumns = (rows: Row[]): string[] => {
   if (!rows.length) return [];
   const keys = Object.keys(rows[0]);
   const nk = keys.find((k) => k.includes("NUMBER"));
-  return keys.filter((k) => k !== nk);
+  return keys.filter((k) => k !== nk && !k.includes("DRIVETRAIN"));
 };
