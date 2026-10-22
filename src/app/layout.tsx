@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import ApiInfo from "@/components/ApiInfo";
 import Navbar from "@/components/Navbar";
+import SideNav from "@/components/SideNav";
 import ScoutProvider from "@/components/ScoutProvider";
 import ScrollToTop from "@/components/ScrollToTop";
 import { UpdatedLine } from "@/components/ui";
@@ -22,6 +24,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <SideNav />
         <ScoutProvider>
           <Navbar />
           <ScrollToTop />
@@ -31,6 +34,7 @@ export default function RootLayout({
               <UpdatedLine />
             </p>
           </main>
+          <ApiInfo />
         </ScoutProvider>
       </body>
     </html>

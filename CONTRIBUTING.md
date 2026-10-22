@@ -3,9 +3,12 @@
 ## Project layout
 
 ```
-src/app/                  Next.js App Router — layout, /, /scrimmages, /team/[number]
+src/app/                  Next.js App Router — layout, /, /events, /scrimmages, /team/[number]
+src/app/events.ics/       Route handler serving the subscribable iCalendar feed
 src/components/           Navbar (search + theme), ScoutProvider (data), UI primitives
 src/lib/sheet.ts          Google Sheets fetching, aggregation, ranking, sorting
+src/lib/ftcscout.ts       FTCScout GraphQL/REST client (season events, match schedules)
+src/lib/events.ts         Event merge model, Google Calendar links, .ics generation
 src/app/globals.css       The light/dark design system (plain CSS over Tailwind's reset)
 ```
 
@@ -20,6 +23,8 @@ The sheet is identified by `SHEET_ID` in [src/lib/sheet.ts](./src/lib/sheet.ts).
 3. Tab names match exactly, including spaces — `SCRIMMAGE_TAB` is looked up by name.
 
 Adding a *new* tab means adding a `loadTab("TabName")` call in `ScoutProvider` and a place to render the rows. Load optional tabs in their own `try`/`catch` so one missing tab cannot blank the rest of the dashboard.
+
+Caveat: the gviz endpoint silently answers with the *first* tab's CSV when a tab name does not exist, so a loader for an optional tab cannot detect its absence from the response. Defensive parsing is required instead — the `Events` loader relies on `fromSheetEvents` skipping every row that lacks a parseable `Date`, which is why a stub `Events` tab cannot produce garbage events.
 
 ## Columns and lookups
 
@@ -40,7 +45,7 @@ Tailwind stays available for utilities, but the component look (`.card`, `.stat`
 
 ## Adding a page
 
-1. Create `src/app/your-page/page.tsx` with `"use client"` and read data from `useScout()` — pages should not fetch.
+1. Create `src/app/your-page/page.tsx` with `"use client"` and read data from `useScout()` — pages should not fetch sheet data themselves. (The Events page is the one exception: its per-event match schedules are fetched lazily on click from FTCScout via `fetchEventMatches`, which is not sheet data at all.)
 2. Keep search boxes, dropdowns, and the selected tab in `useState` so a background refresh does not wipe the user's view.
 3. Reuse `Banner`, `StatCard`, `SortableTable`, `RawTable`, and `Chart` from [src/components/ui.tsx](./src/components/ui.tsx) instead of re-implementing them.
 4. Add the route to the navbar's `LINKS` in [src/components/Navbar.tsx](./src/components/Navbar.tsx) if it deserves a top-level link.

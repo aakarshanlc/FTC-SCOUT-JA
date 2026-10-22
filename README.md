@@ -18,10 +18,11 @@ Open the local URL printed by Next.js (usually `http://localhost:3000`). For a p
 | Route | What it shows |
 | --- | --- |
 | `/` | Championship teams ranked by average match score, with a number/name/organization filter |
-| `/scrimmages` | Per-team scrimmage averages, an event dropdown, and Teams / Entries / High score / Average cards |
+| `/events` | Upcoming and past events — FTCScout season events merged with sheet-dated events and scrimmages — with Google Calendar links and per-event match info |
+| `/scrimmages` | Per-team scrimmage averages with an event dropdown, sortable by rank, team, or score columns |
 | `/team/[number]` | A team page: robot info, score charts, and the raw Matches and Scrimmages rows |
 
-Everywhere else: the navbar has a global team search (number or name, Enter opens the top hit) and a 🌓 dark-mode toggle that persists in `localStorage` and otherwise follows the system preference. Tables sort by clicking a column header, rows link to the team page, and all data refreshes every 30 seconds.
+Everywhere else: the navbar has a global team search (number or name, Enter opens the top hit) and a circular sun/moon dark-mode button that persists in `localStorage` and otherwise follows the system preference. Tables sort by clicking a column header, rows link to the team page, and all data refreshes every 30 seconds.
 
 ## Content
 
@@ -32,13 +33,16 @@ All scouting data comes from the Google Sheet identified by `SHEET_ID` in [src/l
 | `Teams` | Rankings, search | Number, Name, Organization |
 | `Robot` | Team pages | Number, plus any robot details (Notes, …) |
 | `Matches` | Rankings, team pages | Number, Total, Auto, Teleop, optional Match label |
-| `Scrimmages` | Scrimmages page | Scrimmage, Number, Name, Organization, Auto, Teleop, Flower, Total |
+| `Scrimmages` | Scrimmages page, events | Scrimmage, Number, Name, Organization, Auto, Teleop, Flower, Total |
+| `Events` | Events page (optional) | Date, Name, plus optional Location, End, Type, Link — a row whose Name matches a scrimmage dates that scrimmage |
 
 Header matching is case-insensitive and ignores surrounding spaces: a column is found by the first header that *contains* a keyword (`number`, `name`, `organization`, `total`, …). Adding a column to a tab requires no code change unless you want it shown in a hand-built table.
 
 A team is ranked only once it has logged matches or scrimmage entries; teams without a Number in the sheet are skipped because they cannot be looked up.
 
-Implementation notes: [src/lib/sheet.ts](./src/lib/sheet.ts) holds fetching, normalization, aggregation, and ranking; [src/components/ScoutProvider.tsx](./src/components/ScoutProvider.tsx) loads the tabs and serves them through context; page components live under [src/app/](./src/app/). See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add tabs, columns, and pages.
+Season events (kickoff, qualifiers, championship) come from the free [FTCScout API](https://ftcscout.org/api) (region `JM`, season `2026` in [src/lib/ftcscout.ts](./src/lib/ftcscout.ts)) — no API key needed. The app also serves `/events.ics`, an iCalendar feed you can subscribe to from Google Calendar, Apple Calendar, or any calendar app so event dates and schedule changes show up as reminders: open `{origin}/events.ics` and add it as a subscribed calendar.
+
+Implementation notes: [src/lib/sheet.ts](./src/lib/sheet.ts) holds fetching, normalization, aggregation, and ranking; [src/lib/events.ts](./src/lib/events.ts) merges FTCScout events, sheet events, and scrimmages into one calendar model and renders .ics; [src/components/ScoutProvider.tsx](./src/components/ScoutProvider.tsx) loads the tabs and serves them through context; page components live under [src/app/](./src/app/). See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add tabs, columns, and pages.
 
 ## Validate
 

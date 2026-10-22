@@ -17,6 +17,7 @@
 # debug
 npm-debug.log*
 .dev-server.log*
+.start-server.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*

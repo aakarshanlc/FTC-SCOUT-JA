@@ -16,7 +16,7 @@
     --shadow: none;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+  body { margin: 0; padding-left: 3.4rem; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
   a { color: inherit; text-decoration: none; }
   .muted { color: var(--muted); }
 
@@ -58,6 +58,12 @@
   #infobtn:hover { color: var(--accent); border-color: var(--accent); }
   #infobtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   #apiinfo.has-err #infobtn::after { content: ""; position: absolute; top: -.1rem; right: -.1rem; width: .55rem; height: .55rem; border-radius: 999px; background: var(--accent); border: 1px solid var(--panel); }
+
+  /* side rail — icon-only shortcuts */
+  .sidenav { position: fixed; left: 0; top: 0; bottom: 0; z-index: 30; width: 3.4rem; display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .75rem 0; background: var(--panel); border-right: 1px solid var(--border); }
+  .sidenav a, .sidenav button { width: 2.4rem; height: 2.4rem; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+  .sidenav a:hover, .sidenav button:hover { color: var(--accent); background: var(--accent-soft); }
+  .sidenav svg { width: 1.15rem; height: 1.15rem; }
 
   /* layout */
   main { max-width: 1100px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
@@ -109,14 +115,44 @@
   svg .cv { fill: var(--text); font-size: 11px; font-weight: 600; }
   svg .cl { fill: var(--muted); font-size: 10px; }
   .foot { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 2rem; }
+
+  /* events page */
+  .ev { display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .card > .ev:first-child { border-top: none; }
+  .ev-when { min-width: 8.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .ev-when .sub { display: block; margin-top: .2rem; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .ev-live { display: inline-block; margin-top: .3rem; padding: .1rem .5rem; border-radius: 999px; background: var(--accent); color: #fff; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .ev-main { flex: 1; min-width: 16rem; }
+  .ev-title { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; font-weight: 700; font-size: 1.02rem; }
+  .ev-meta { margin-top: .2rem; font-size: .85rem; color: var(--muted); }
+  .ev-links { display: flex; gap: .45rem; flex-wrap: wrap; align-items: center; margin-top: .6rem; }
+  .ev-links a { padding: .3rem .65rem; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); color: var(--muted); font-size: .78rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .ev-links a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .pill.kind { min-width: 0; background: var(--accent-soft); color: var(--accent); font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; }
+  .ev-matches { margin-top: .7rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .ev-matches .ev-teams { margin-top: .15rem; font-size: .72rem; color: var(--muted); }
+  .ev-note { font-size: .85rem; color: var(--muted); }
 </style>
 </head>
 <body>
+<aside class="sidenav">
+  <a href="#/teams" title="Home" aria-label="Home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/></svg>
+  </a>
+  <a href="https://github.com/aakarshanlc/FTC-SCOUT-JA" target="_blank" rel="noreferrer" title="GitHub repository" aria-label="GitHub repository">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+  </a>
+  <button type="button" title="Settings" aria-label="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
+</aside>
+
 <nav>
   <div class="nav-in">
     <a class="brand" href="#/teams">FTC Scouting</a>
     <div class="links">
       <a href="#/teams" data-page="teams">Championship</a>
+      <a href="#/events" data-page="events">Events</a>
       <a href="#/scrimmages" data-page="scrimmages">Scrimmages</a>
     </div>
     <div class="nav-right">
@@ -158,16 +194,16 @@ const EVENT_CODE = "JMCMP"; // championship event code — API match scores come
 const ROSTER_FROM_API = true;  // show API teams in the Championship table even with no sheet rows
 const API_INFO_FIRST = true;   // true = API name/org shows over the sheet; false = sheet shows
 
-let teams = [], robots = [], matches = [], scrimmages = [];
+let teams = [], robots = [], matches = [], scrimmages = [], sheetEvents = [];
 let apiTeams = new Map();   // team number (string) -> { name, org, loc } from FTCScout
 let apiMatches = [];        // match rows from FTCScout — one per team per match; the sheet is the fallback
-const status = { champ: "Loading data…", scrim: "Loading scrimmages…", apiTeams: "", apiMatches: "" };
-const errors = { champ: "", scrim: "", apiTeams: "", apiMatches: "" };
+const status = { champ: "Loading data…", scrim: "Loading scrimmages…", apiTeams: "", apiMatches: "", apiEvents: "" };
+const errors = { champ: "", scrim: "", apiTeams: "", apiMatches: "", apiEvents: "" };
 let lastUpdated = null;
 
 const ui = {
   sort: { teams: { key: "rank", dir: 1 }, scrim: { key: "rank", dir: 1 } },
-  teamQuery: "", scrimEvent: "", teamTab: "overview", apiInfoOpen: false
+  teamQuery: "", scrimEvent: "", teamTab: "overview", apiInfoOpen: false, eventsOpen: null
 };
 
 const $ = id => document.getElementById(id);
@@ -318,7 +354,13 @@ async function loadAll() {
     status.scrim = "";
     render();
   })();
-  await Promise.all([champ, scrim]);
+  // sheet Events tab — optional; gviz falls back to the first tab for unknown
+  // names, so calendarEvents() only keeps rows that have a parseable Date.
+  const eventsTab = (async () => {
+    try { sheetEvents = await loadTab("Events"); }
+    catch { sheetEvents = []; }
+  })();
+  await Promise.all([champ, scrim, eventsTab]);
   lastUpdated = new Date();
   render();
 }
@@ -388,12 +430,12 @@ function scrimRows() {
   });
   const infos = new Map(allTeams().map(t => [t.number, t]));
   const rows = [...by].map(([n, rs]) => {
-    const t = agg(rs, "total"), a = agg(rs, "auto"), p = agg(rs, "teleop"), f = agg(rs, "flower");
+    const t = agg(rs, "total"), a = agg(rs, "auto"), p = agg(rs, "teleop");
     const last = rs[rs.length - 1];
     const i = infos.get(n) || {};
     return {
       number: parseInt(n) || n, name: i.name || col(last, "name"), org: i.org || col(last, "organization", "org"),
-      auto: a.avg, teleop: p.avg, flower: f.avg, avgTotal: t.avg, best: t.best, played: t.count, rank: null
+      auto: a.avg, teleop: p.avg, avgTotal: t.avg, best: t.best, played: t.count, rank: null
     };
   });
   rankBy(rows, "avgTotal");
@@ -450,7 +492,6 @@ const scrimCols = [
   { key: "org", label: "Organization" },
   { key: "auto", label: "Avg Auto", num: true },
   { key: "teleop", label: "Avg Teleop", num: true },
-  { key: "flower", label: "Avg Flower", num: true },
   { key: "avgTotal", label: "Avg Total", num: true },
   { key: "best", label: "Best", num: true },
   { key: "played", label: "Entries", num: true }
@@ -505,19 +546,11 @@ function pageScrims() {
   const names = scrimNames();
   if (ui.scrimEvent && !names.includes(ui.scrimEvent)) ui.scrimEvent = "";
   const rows = scrimRows();
-  const base = scrimBase();
-  const totals = agg(base, "total");
   const options = `<option value="">All scrimmages</option>` +
     names.map(n => `<option value="${esc(n)}"${n === ui.scrimEvent ? " selected" : ""}>${esc(n)}</option>`).join("");
   return `${banner("scrim")}
     <div class="pagehead"><h1>${ui.scrimEvent ? esc(ui.scrimEvent) : "Scrimmages"}</h1><span class="muted">${rows.length} teams</span></div>
     <select id="scrimEvent" onchange="ui.scrimEvent = this.value; render()">${options}</select>
-    <div class="stats">
-      ${statCard("Teams", rows.length)}
-      ${statCard("Entries", totals.count)}
-      ${statCard("High score", totals.best)}
-      ${statCard("Average score", totals.avg)}
-    </div>
     <div class="card">${rows.length ? table(scrimCols, rows, "scrim") : `<p class="empty">No data in the Scrimmages tab yet.</p>`}</div>`;
 }
 
@@ -565,6 +598,183 @@ function pageTeam(n) {
     ${body}`;
 }
 
+// EVENTS — FTCScout season events + sheet Events tab + scrimmages
+const GQL = "https://api.ftcscout.org/graphql";
+let apiEvents = [];        // FTCScout GraphQL eventsSearch results
+const eventMatches = {};   // event id -> fetched match list (cache)
+const eventMatchErr = {};  // event id -> error message
+
+async function loadApiEvents() {
+  const query = `query($season:Int!,$region:RegionOption,$limit:Int){eventsSearch(season:$season,region:$region,limit:$limit){code name type start end published ongoing finished hasMatches timezone website liveStreamURL address location{city state country}}}`;
+  try {
+    const res = await fetch(GQL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables: { season: SEASON, region: REGION, limit: 100 } })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = await res.json();
+    if (body.errors && body.errors.length) throw new Error(body.errors[0].message);
+    apiEvents = (body.data && body.data.eventsSearch) || [];
+    errors.apiEvents = "";
+    status.apiEvents = `FTCScout: ${apiEvents.length} season events for region "${REGION}" — dates, venues & schedules`;
+  } catch (e) {
+    apiEvents = [];
+    status.apiEvents = "";
+    errors.apiEvents = `FTCScout events: ${e.message} — showing sheet events only.`;
+  }
+  render();
+}
+
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const addDays = (date, n) => { const d = new Date(date + "T00:00:00"); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const ftcEventUrl = code => `https://www.ftcscout.org/events/${SEASON}/${code}`;
+
+function parseSheetDate(raw) {
+  const s = String(raw ?? "").trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const us = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (us) return `${us[3]}-${us[1].padStart(2, "0")}-${us[2].padStart(2, "0")}`;
+  const t = Date.parse(s);
+  if (isNaN(t)) return null;
+  const d = new Date(t);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// merged calendar: FTCScout first, then hand-dated sheet rows (a row whose
+// Name matches a scrimmage dates that scrimmage instead of duplicating it)
+function calendarEvents() {
+  const out = [];
+  apiEvents.forEach(e => out.push({
+    id: `ftc-${SEASON}-${e.code}`, name: e.name, kind: e.type,
+    start: e.start || null, end: e.end || e.start || null,
+    location: [e.address, [e.location && e.location.city, e.location && e.location.country].filter(Boolean).join(", ")].filter(Boolean).join(" · "),
+    website: e.website, liveStream: e.liveStreamURL, url: ftcEventUrl(e.code), code: e.code,
+    finished: e.finished, ongoing: e.ongoing, hasMatches: e.hasMatches, teams: 0, source: "ftcscout"
+  }));
+  const official = new Set(out.map(e => e.name.toLowerCase()));
+  const by = new Map();
+  scrimmages.forEach(r => { const n = col(r, "scrimmage"); if (n) by.set(n, (by.get(n) || 0) + 1); });
+  const datedScrim = {};
+  sheetEvents.forEach(r => {
+    const name = col(r, "name", "event").trim();
+    const start = parseSheetDate(col(r, "date"));
+    if (!name || !start) return;
+    const end = parseSheetDate(col(r, "end", "to")) || start;
+    datedScrim[name.toLowerCase()] = { start, end: end < start ? start : end, location: col(r, "location", "place", "venue") };
+    if (official.has(name.toLowerCase()) || by.has(name)) return;
+    out.push({
+      id: `sheet-${start}-${name.toLowerCase().replace(/\W+/g, "-")}`, name,
+      kind: col(r, "type", "kind") || "Event", start,
+      end: end < start ? start : end, location: col(r, "location", "place", "venue"),
+      website: col(r, "link", "url") || null, liveStream: null, url: null, code: null,
+      finished: end < todayISO(), ongoing: false, hasMatches: false, teams: 0, source: "sheet"
+    });
+  });
+  by.forEach((count, name) => {
+    const d = datedScrim[name.toLowerCase()];
+    out.push({
+      id: `scrim-${name.toLowerCase().replace(/\W+/g, "-")}`, name, kind: "Scrimmage",
+      start: d ? d.start : null, end: d ? d.end : null, location: d ? d.location : "",
+      website: null, liveStream: null, url: null, code: null,
+      finished: d ? d.end < todayISO() : false, ongoing: false, hasMatches: false, teams: count, source: "sheet"
+    });
+  });
+  return out;
+}
+
+function fmtDateRange(start, end) {
+  if (!start) return "Date TBD";
+  const d = new Date(start + "T00:00:00");
+  const mon = x => x.toLocaleDateString("en-US", { month: "short" });
+  if (!end || end <= start) return `${mon(d)} ${d.getDate()}, ${d.getFullYear()}`;
+  const e = new Date(end + "T00:00:00");
+  if (start.slice(0, 7) === end.slice(0, 7)) return `${mon(d)} ${d.getDate()} – ${e.getDate()}, ${e.getFullYear()}`;
+  return `${mon(d)} ${d.getDate()} – ${mon(e)} ${e.getDate()}, ${e.getFullYear()}`;
+}
+
+function gcalUrl(e) {
+  if (!e.start) return null;
+  const ex = addDays(e.end || e.start, 1);
+  const details = [e.kind, e.teams ? `${e.teams} scrimmage entries logged` : "", e.url ? `Details: ${e.url}` : "", e.website ? `Website: ${e.website}` : ""].filter(Boolean).join("\n");
+  const p = new URLSearchParams({ action: "TEMPLATE", text: e.name, dates: `${e.start.replace(/-/g, "")}/${ex.replace(/-/g, "")}`, location: e.location || "", details });
+  return `https://calendar.google.com/calendar/render?${p.toString()}`;
+}
+
+function toggleEventMatches(id, code) {
+  if (ui.eventsOpen === id) { ui.eventsOpen = null; render(); return; }
+  ui.eventsOpen = id;
+  render();
+  if (!code || eventMatches[id] || eventMatchErr[id]) return;
+  fetch(`https://api.ftcscout.org/rest/v1/events/${SEASON}/${code}/matches`)
+    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    .then(list => { eventMatches[id] = Array.isArray(list) ? list : []; render(); })
+    .catch(e => { eventMatchErr[id] = e.message; render(); });
+}
+
+const matchLabelOf = m => m.tournamentLevel === "Quals" ? `Q${m.id}` : `${m.tournamentLevel === "DoubleElim" ? "DE" : m.tournamentLevel || "Match"} #${m.id}`;
+const scoreOf = a => (a ? (a.totalPointsNp ?? a.totalPoints ?? null) : null);
+
+function matchListHTML(e) {
+  if (ui.eventsOpen !== e.id) return "";
+  const err = eventMatchErr[e.id];
+  if (err) return `<p class="empty ev-note">Matches: ${esc(err)}</p>`;
+  const ms = eventMatches[e.id];
+  if (!ms) return `<p class="empty ev-note">Loading match schedule…</p>`;
+  if (!ms.length) return `<p class="empty ev-note">${e.code ? "No match results yet — the schedule isn't published." : "No matches for this event."}</p>`;
+  const rows = ms.map(m => {
+    const red = (m.teams || []).filter(t => t.alliance === "Red").map(t => t.teamNumber).join(", ");
+    const blue = (m.teams || []).filter(t => t.alliance === "Blue").map(t => t.teamNumber).join(", ");
+    const when = m.actualStartTime || m.scheduledStartTime;
+    const whenTxt = when ? new Date(when).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "–";
+    const rs = scoreOf(m.scores && m.scores.red), bs = scoreOf(m.scores && m.scores.blue);
+    return `<tr><td><strong>${esc(matchLabelOf(m))}</strong><div class="ev-teams">${esc(m.tournamentLevel || "")}</div></td>
+      <td>${esc(whenTxt)}</td>
+      <td class="num"><strong>${rs === null ? "–" : rs}</strong><div class="ev-teams">${esc(red || "–")}</div></td>
+      <td class="num"><strong>${bs === null ? "–" : bs}</strong><div class="ev-teams">${esc(blue || "–")}</div></td></tr>`;
+  }).join("");
+  return `<div class="ev-matches tablewrap"><table>
+    <thead><tr><th>Match</th><th>Time</th><th class="num">Red</th><th class="num">Blue</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+function eventRowHTML(e) {
+  const gcal = gcalUrl(e);
+  const details = e.url || e.website;
+  return `<div class="ev">
+    <div class="ev-when">${esc(fmtDateRange(e.start, e.end))}${e.ongoing ? `<span class="ev-live">Live</span>` : ""}</div>
+    <div class="ev-main">
+      <div class="ev-title">${esc(e.name)} <span class="pill kind">${esc(e.kind)}</span>${e.teams ? `<span class="muted">· ${e.teams} teams</span>` : ""}</div>
+      ${e.location ? `<div class="ev-meta">${esc(e.location)}</div>` : ""}
+      <div class="ev-links">
+        ${gcal ? `<a href="${esc(gcal)}" target="_blank" rel="noreferrer">Add to Google Calendar</a>` : ""}
+        ${e.code ? `<a href="#" onclick="toggleEventMatches('${esc(e.id)}', '${esc(e.code)}'); return false;">${ui.eventsOpen === e.id ? "Hide matches" : "Match info"}</a>` : ""}
+        ${details ? `<a href="${esc(details)}" target="_blank" rel="noreferrer">${e.url ? "FTCScout" : "Website"}</a>` : ""}
+      </div>
+      ${matchListHTML(e)}
+    </div>
+  </div>`;
+}
+
+function pageEvents() {
+  const all = calendarEvents();
+  const today = todayISO();
+  const isUp = e => e.ongoing || (!e.finished && (!e.start || (e.end || e.start) >= today));
+  const byDate = (a, b) => !a.start ? 1 : !b.start ? -1 : a.start < b.start ? -1 : a.start > b.start ? 1 : a.name.localeCompare(b.name);
+  const upcoming = all.filter(isUp).sort(byDate);
+  const past = all.filter(e => !isUp(e)).sort((a, b) => -byDate(a, b));
+  const bannerHtml = errors.apiEvents ? `<div class="banner error">${esc(errors.apiEvents)}</div>`
+    : status.apiEvents ? `<div class="banner">${esc(status.apiEvents)}</div>` : "";
+  return `${bannerHtml}
+    <div class="pagehead"><h1>Events</h1><span class="muted">${upcoming.length} upcoming · ${past.length} past</span></div>
+    <div class="card">
+      <div class="ev" style="display:block"><h3>Upcoming</h3></div>
+      ${upcoming.length ? upcoming.map(eventRowHTML).join("") : `<p class="empty">No upcoming events yet.</p>`}
+    </div>
+    ${past.length ? `<div class="card" style="margin-top:1rem"><div class="ev" style="display:block"><h3>Past</h3></div>${past.map(eventRowHTML).join("")}</div>` : ""}`;
+}
+
 // ROUTER
 function route() {
   const h = location.hash.replace(/^#\/?/, "");
@@ -579,7 +789,7 @@ function render() {
   const pos = focusId && typeof a.selectionStart === "number" ? a.selectionStart : null;
 
   const { page, arg } = route();
-  $("app").innerHTML = page === "team" ? pageTeam(arg) : page === "scrimmages" ? pageScrims() : pageTeams();
+  $("app").innerHTML = page === "team" ? pageTeam(arg) : page === "events" ? pageEvents() : page === "scrimmages" ? pageScrims() : pageTeams();
   document.querySelectorAll(".links a").forEach(l => l.classList.toggle("active", l.dataset.page === page));
   $("updated").textContent = lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()} · refreshes every ${REFRESH_MS / 1000}s` : "";
   renderApiInfo();
@@ -591,7 +801,7 @@ function render() {
   }
 }
 
-window.addEventListener("hashchange", () => { ui.teamTab = "overview"; window.scrollTo(0, 0); render(); });
+window.addEventListener("hashchange", () => { ui.teamTab = "overview"; ui.eventsOpen = null; window.scrollTo(0, 0); render(); });
 
 // GLOBAL SEARCH
 function gsearch() {
@@ -646,6 +856,8 @@ function apiInfoHTML() {
   if (errors.apiTeams) rows.push(`<div class="row err">${esc(errors.apiTeams)}</div>`);
   if (status.apiMatches) rows.push(`<div class="row">${esc(status.apiMatches)}</div>`);
   if (errors.apiMatches) rows.push(`<div class="row err">${esc(errors.apiMatches)}</div>`);
+  if (status.apiEvents) rows.push(`<div class="row">${esc(status.apiEvents)}</div>`);
+  if (errors.apiEvents) rows.push(`<div class="row err">${esc(errors.apiEvents)}</div>`);
   if (!rows.length) rows.push(`<div class="row">No FTCScout status yet.</div>`);
   return `<h4>FTCScout</h4>${rows.join("")}`;
 }
@@ -655,7 +867,7 @@ function renderApiInfo() {
   if (!info || !panel) return;
   panel.innerHTML = apiInfoHTML();
   panel.hidden = !ui.apiInfoOpen;
-  info.classList.toggle("has-err", Boolean(errors.apiTeams || errors.apiMatches));
+  info.classList.toggle("has-err", Boolean(errors.apiTeams || errors.apiMatches || errors.apiEvents));
 }
 
 function toggleApiInfo() { ui.apiInfoOpen = !ui.apiInfoOpen; renderApiInfo(); }
@@ -669,6 +881,7 @@ document.addEventListener("click", (e) => {
 render();
 loadApiTeams(); // roster from FTCScout
 loadApiMatches(); // match scores from FTCScout — the sheet Matches tab is the fallback
+loadApiEvents(); // season events from FTCScout (GraphQL)
 loadAll(); // sheet tabs, then re loads every REFRESH_MS
 setInterval(() => { loadAll(); loadApiMatches(); }, REFRESH_MS);
 </script>

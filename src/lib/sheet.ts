@@ -26,7 +26,6 @@ export interface ScrimRow {
   org: string;
   auto: number | null;
   teleop: number | null;
-  flower: number | null;
   avgTotal: number | null;
   best: number | null;
   played: number;
@@ -187,7 +186,6 @@ export function scrimRows(scrimmages: Row[], event: string): ScrimRow[] {
     const t = agg(rs, "total");
     const a = agg(rs, "auto");
     const p = agg(rs, "teleop");
-    const f = agg(rs, "flower");
     const last = rs[rs.length - 1];
     return {
       number: n,
@@ -195,7 +193,6 @@ export function scrimRows(scrimmages: Row[], event: string): ScrimRow[] {
       org: col(last, "organization", "org"),
       auto: a.avg,
       teleop: p.avg,
-      flower: f.avg,
       avgTotal: t.avg,
       best: t.best,
       played: t.count,
