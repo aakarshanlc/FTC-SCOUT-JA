@@ -272,6 +272,17 @@ export interface FtcMatch {
   time: string | null;
   red: FtcAlliance;
   blue: FtcAlliance;
+  clip?: MatchClip | null;
+}
+
+/** Where a match is inside an event recording (see /clips). */
+export interface MatchClip {
+  recording: string;
+  videoId: string;
+  start: number;
+  end: number;
+  url: string;
+  calibrated: boolean;
 }
 
 export interface FtcEventDetail {
@@ -326,3 +337,50 @@ export interface FirstAlliance {
   backup: FirstTeamRef | null;
   result: "Winner" | "Finalist" | null;
 }
+
+// ───────── Match video (YouTube recordings clipped into matches) ─────────
+
+export interface Clip {
+  matchId: number;
+  label: string;
+  level: string;
+  red: FtcAlliance;
+  blue: FtcAlliance;
+  matchStart: number;
+  start: number;
+  end: number;
+  url: string;
+}
+
+export interface Recording {
+  _id: string;
+  videoId: string;
+  title: string;
+  channel: string | null;
+  lengthSeconds: number | null;
+  season: number;
+  eventCode: string;
+  videoStart: string;
+  shift: number;
+  calibrated: boolean;
+  source: "youtube-live" | "manual";
+  clipCount?: number;
+  clips?: Clip[];
+  teamNames?: Record<string, string>;
+}
+
+export interface ClipEvent {
+  season: number;
+  code: string;
+  name: string;
+  first: string;
+  last: string;
+  matches: number;
+}
+
+export const patch = <T,>(path: string, data?: unknown) =>
+  fetch(`${API_URL}${path}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data ?? {}) }).then(async (r) => {
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new ApiError(r.status, body.error || `Request failed (${r.status})`);
+    return body as T;
+  });

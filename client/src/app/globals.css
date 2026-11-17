@@ -264,7 +264,7 @@ textarea {
   bottom: 12px;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   padding: 6px;
   border-radius: 18px;
   background: color-mix(in srgb, var(--surface) 90%, transparent);
@@ -1303,3 +1303,89 @@ table.data {
 .credits { padding-top: 0; padding-bottom: 110px; font-size: 12.5px; color: var(--ink-3); }
 .credits a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
 @media (min-width: 900px) { .credits { padding-bottom: 32px; } }
+
+/* match video clips */
+.clips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+.clip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--paper);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.clip:hover {
+  border-color: var(--ink);
+  transform: translateY(-1px);
+}
+.clip.on {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--signal) 35%, transparent);
+}
+.clip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.clip-label {
+  font-family: var(--ff-display), sans-serif;
+  font-size: 22px;
+  line-height: 1;
+}
+.clip-time {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.clip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.clip-row .t {
+  font-family: var(--ff-mono), monospace;
+}
+.clip-row .s {
+  font-weight: 700;
+}
+.clip-row.red {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.clip-row.blue {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+/* pop-up clip player */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(8 10 14 / 0.72);
+  backdrop-filter: blur(4px);
+  animation: fade 0.15s ease-out;
+}
+.modal-card {
+  width: min(960px, 100%);
+  overflow: hidden;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}

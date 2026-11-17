@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { ClipPlayer } from "./ClipPlayer";
 import type { FtcAward, FtcMatch } from "@/lib/api";
 import { awardName, seasonLabel } from "@/lib/format";
 import { Empty } from "./ui";
@@ -15,9 +17,12 @@ export function MatchList({
   focus?: string;
   names?: Record<string, string>;
 }) {
+  const [playing, setPlaying] = useState<FtcMatch | null>(null);
   if (!matches.length) return <Empty title="No matches" />;
+  const anyClip = matches.some((m) => m.clip);
   return (
     <div className="tablewrap">
+      {playing?.clip ? <ClipPlayer match={playing} clip={playing.clip} names={names} onClose={() => setPlaying(null)} /> : null}
       <table className="data">
         <thead>
           <tr>
@@ -25,6 +30,7 @@ export function MatchList({
             {focus ? <th>Result</th> : null}
             <th className="r">Red alliance</th>
             <th className="r">Blue alliance</th>
+            {anyClip ? <th className="r">Video</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -63,6 +69,19 @@ export function MatchList({
                 <td>
                   <Side color="blue" a={m.blue} win={done && b! > r!} focus={focus} names={names} />
                 </td>
+                {anyClip ? (
+                  <td className="r">
+                    {m.clip ? (
+                      <button type="button" className="btn sm primary" onClick={() => setPlaying(m)} aria-label={`Watch ${m.label}`}>
+                        ▶ Watch
+                      </button>
+                    ) : (
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        —
+                      </span>
+                    )}
+                  </td>
+                ) : null}
               </tr>
             );
           })}

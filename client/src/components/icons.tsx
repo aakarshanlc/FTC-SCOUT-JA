@@ -90,3 +90,9 @@ export const IconSheet = (p: P) => (
     <path d="M4 9h16M4 15h16M10 3v18" />
   </svg>
 );
+export const IconPlay = (p: P) => (
+  <svg {...base} {...p}>
+    <rect x="2.5" y="4.5" width="19" height="15" rx="3" />
+    <path d="m10 9 5 3-5 3z" fill="currentColor" />
+  </svg>
+);

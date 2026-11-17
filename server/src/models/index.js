@@ -244,3 +244,28 @@ firstEventSchema.index({ "teams.team": 1 });
 firstEventSchema.index({ "awards.team": 1 });
 
 export const FirstEvent = model("FirstEvent", firstEventSchema);
+
+// ───────── Match video: a YouTube recording clipped into matches ─────────
+// No video is stored or downloaded: a clip is just (videoId, start, end).
+const recordingSchema = new Schema(
+  {
+    videoId: { type: String, required: true },
+    title: String,
+    channel: String,
+    lengthSeconds: Number,
+    season: { type: Number, required: true },
+    eventCode: { type: String, required: true },
+    // Wall-clock time of the video's first frame. From YouTube's livestream
+    // start time, or derived from a match the user located by hand.
+    videoStart: { type: Date, required: true },
+    // Seconds added to every clip position (fine-tune). 0 = YouTube's start time as-is.
+    shift: { type: Number, default: 0 },
+    calibrated: { type: Boolean, default: false }, // fine-tuned against a real match
+    source: { type: String, enum: ["youtube-live", "manual"], default: "youtube-live" },
+  },
+  { timestamps: true },
+);
+recordingSchema.index({ season: 1, eventCode: 1 });
+recordingSchema.index({ videoId: 1, season: 1, eventCode: 1 }, { unique: true });
+
+export const Recording = model("Recording", recordingSchema);

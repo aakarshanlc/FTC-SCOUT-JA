@@ -9,6 +9,7 @@ import {
   IconCalendar,
   IconHome,
   IconMoon,
+  IconPlay,
   IconPlus,
   IconSearch,
   IconSun,
@@ -21,6 +22,7 @@ const NAV = [
   { href: "/rankings", label: "Rankings", Icon: IconTrophy },
   { href: "/scrimmages", label: "Scrimmages", Icon: IconSwords },
   { href: "/events", label: "Events", Icon: IconCalendar },
+  { href: "/clips", label: "Video", Icon: IconPlay },
   { href: "/scout", label: "Scout", Icon: IconPlus },
 ];
 

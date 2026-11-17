@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Event, FirstEvent, FtcMatch, Participation, Team, TeamSeason } from "../models/index.js";
 import { HttpError, ah } from "../lib/util.js";
+import { withClips } from "./clips.js";
 
 export const ftc = Router();
 
@@ -180,7 +181,7 @@ ftc.get(
     const filter = { teams: team };
     if (req.query.season) filter.season = seasonParam(req.query.season);
     const matches = await FtcMatch.find(filter).sort({ season: -1, time: 1, matchId: 1 }).lean();
-    res.json(matches);
+    res.json(await withClips(matches));
   }),
 );
 
@@ -239,7 +240,7 @@ ftc.get(
       url: event?.url ?? null,
       rankings,
       awards,
-      matches,
+      matches: await withClips(matches),
       venue: fe?.venue || null,
       address: fe ? [fe.address, fe.city, fe.country].filter(Boolean).join(", ") : null,
       coordinates: fe?.coordinates?.length === 2 ? { lng: fe.coordinates[0], lat: fe.coordinates[1] } : null,
