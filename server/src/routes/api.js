@@ -8,6 +8,7 @@ import { eventMatches } from "../services/ftcscout.js";
 import { syncAll } from "../services/sync.js";
 import { dbState } from "../db.js";
 import { config } from "../config.js";
+import { ftcRankings, ftcSeasons } from "./ftc.js";
 
 export const api = Router();
 
@@ -48,10 +49,13 @@ api.get(
     ]);
     const { upcoming, past } = splitUpcoming(events);
     const ranked = champ.filter((r) => r.rank !== null).sort((a, b) => a.rank - b.rank);
-    const [matchCount, scrimCount] = await Promise.all([
+    const [matchCount, scrimCount, seasons] = await Promise.all([
       Match.countDocuments(),
       Scrimmage.countDocuments(),
+      ftcSeasons(),
     ]);
+    const ftcSeason = seasons[0]?.season ?? null;
+    const ftcTop = ftcSeason ? (await ftcRankings(ftcSeason)).slice(0, 5) : [];
     res.json({
       counts: {
         teams: champ.length,
@@ -63,6 +67,7 @@ api.get(
         pastEvents: past.length,
       },
       topTeams: ranked.slice(0, 5),
+      ftc: { season: ftcSeason, top: ftcTop, seasons },
       nextEvents: upcoming.slice(0, 3),
       recentScrimmageTeams: scrims.slice(0, 8),
       sync: { sheet: lastSheet, ftcscout: lastFtc },
@@ -278,7 +283,7 @@ api.get(
 
 api.post(
   "/sync",
-  ah(async (_req, res) => {
-    res.json(await syncAll());
+  ah(async (req, res) => {
+    res.json(await syncAll({ full: req.query.full === "1", force: true }));
   }),
 );

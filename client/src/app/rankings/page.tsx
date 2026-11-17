@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import type { ChampRow } from "@/lib/api";
+import type { ChampRow, FtcRankRow, FtcSeasonInfo } from "@/lib/api";
+import { record, seasonLabel } from "@/lib/format";
+import { SeasonChips } from "@/components/ftc";
 import {
   Empty,
   ErrorNotice,
@@ -15,22 +17,109 @@ import {
   type Column,
 } from "@/components/ui";
 
+type Mode = "ftc" | "scouting";
+
 export default function RankingsPage() {
-  const { data = [], error, isLoading } = useSWR<ChampRow[]>("/api/teams");
+  const [mode, setMode] = useState<Mode>("ftc");
   const [q, setQ] = useState("");
-  const [onlyRanked, setOnlyRanked] = useState(false);
-
   const term = q.trim().toLowerCase();
-  const rows = data.filter(
-    (r) =>
-      (!onlyRanked || r.rank !== null) &&
-      (!term ||
-        r.number.includes(term) ||
-        r.name.toLowerCase().includes(term) ||
-        r.org.toLowerCase().includes(term)),
-  );
-  const max = Math.max(0, ...data.map((r) => r.avg ?? 0));
+  const match = (r: { number: string; name: string; org: string }) =>
+    !term || r.number.includes(term) || r.name.toLowerCase().includes(term) || r.org.toLowerCase().includes(term);
 
+  return (
+    <>
+      <PageHead
+        eyebrow="Jamaica"
+        title="Rankings"
+        sub={
+          mode === "ftc"
+            ? "Official results from FTCScout: teams ranked by season OPR, the points a team adds to its alliance per match."
+            : "Ranked by your own scouting: the average match total logged in the sheet or on the Scout page."
+        }
+      />
+      <div className="toolbar">
+        <div className="seg" role="group" aria-label="Ranking source">
+          <button type="button" aria-pressed={mode === "ftc"} onClick={() => setMode("ftc")}>
+            FTCScout OPR
+          </button>
+          <button type="button" aria-pressed={mode === "scouting"} onClick={() => setMode("scouting")}>
+            Our scouting
+          </button>
+        </div>
+        <input
+          className="input"
+          placeholder="Filter by number, name or school…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+      </div>
+      {mode === "ftc" ? <FtcRankings match={match} /> : <ScoutingRankings match={match} term={term} />}
+    </>
+  );
+}
+
+function FtcRankings({ match }: { match: (r: FtcRankRow) => boolean }) {
+  const [season, setSeason] = useState<number | null>(null);
+  const { data, error, isLoading } = useSWR<{ season: number | null; seasons: FtcSeasonInfo[]; rows: FtcRankRow[] }>(
+    `/api/ftc/rankings${season ? `?season=${season}` : ""}`,
+    { keepPreviousData: true },
+  );
+  const rows = (data?.rows ?? []).filter(match);
+  const max = Math.max(0, ...(data?.rows ?? []).map((r) => r.opr ?? 0));
+
+  const cols: Column<FtcRankRow>[] = [
+    { key: "rank", label: "#", render: (r) => <Rank rank={r.rank} /> },
+    { key: "name", label: "Team", render: (r) => <TeamCell number={r.number} name={r.name} org={r.org} /> },
+    { key: "opr", label: "OPR", right: true, render: (r) => <Meter value={r.opr} max={max} /> },
+    { key: "auto", label: "Auto", right: true },
+    { key: "dc", label: "Teleop", right: true },
+    { key: "wins", label: "Record", right: true, render: (r) => <span className="num">{record(r.wins, r.losses, r.ties)}</span> },
+    { key: "best", label: "Best", right: true },
+    {
+      key: "worldRank",
+      label: "World",
+      right: true,
+      render: (r) => (
+        <span className="num muted" title={r.worldCount ? `of ${r.worldCount} teams` : undefined}>
+          {r.worldRank ? `#${r.worldRank}` : "–"}
+        </span>
+      ),
+    },
+    { key: "awards", label: "Awards", right: true, render: (r) => (r.awards ? <span className="badge signal">★ {r.awards}</span> : <span className="muted">–</span>) },
+  ];
+
+  return (
+    <>
+      <ErrorNotice error={error} />
+      <div style={{ marginBottom: 14 }}>
+        <SeasonChips seasons={(data?.seasons ?? []).map((s) => s.season)} value={data?.season ?? null} onChange={setSeason} />
+      </div>
+      <div className="card">
+        {isLoading && !data ? (
+          <SkeletonRows />
+        ) : rows.length ? (
+          <SortableTable
+            key={data?.season}
+            cols={cols}
+            rows={rows}
+            rowKey={(r) => r.number}
+            initialSort={{ key: "rank", dir: 1 }}
+            href={(r) => `/team/${r.number}`}
+          />
+        ) : (
+          <Empty title={data?.season ? `No results for ${seasonLabel(data.season)}` : "No FTCScout data yet"}>
+            Results appear after the server's FTCScout sync.
+          </Empty>
+        )}
+      </div>
+    </>
+  );
+}
+
+function ScoutingRankings({ match, term }: { match: (r: ChampRow) => boolean; term: string }) {
+  const { data = [], error, isLoading } = useSWR<ChampRow[]>("/api/teams");
+  const rows = data.filter((r) => r.rank !== null && match(r));
+  const max = Math.max(0, ...data.map((r) => r.avg ?? 0));
   const cols: Column<ChampRow>[] = [
     { key: "rank", label: "#", render: (r) => <Rank rank={r.rank} /> },
     { key: "name", label: "Team", render: (r) => <TeamCell number={r.number} name={r.name} org={r.org} /> },
@@ -40,45 +129,17 @@ export default function RankingsPage() {
     { key: "best", label: "Best", right: true },
     { key: "played", label: "Played", right: true },
   ];
-
   return (
     <>
-      <PageHead
-        eyebrow="Championship"
-        title="Rankings"
-        sub="Every team ranked by average match total. Tap a row for the full scouting report."
-      />
       <ErrorNotice error={error} />
-      <div className="toolbar">
-        <input
-          className="input"
-          placeholder="Filter by number, name or school…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        <div className="seg" role="group" aria-label="Which teams">
-          <button type="button" aria-pressed={!onlyRanked} onClick={() => setOnlyRanked(false)}>
-            All {data.length}
-          </button>
-          <button type="button" aria-pressed={onlyRanked} onClick={() => setOnlyRanked(true)}>
-            Ranked {data.filter((r) => r.rank).length}
-          </button>
-        </div>
-      </div>
       <div className="card">
         {isLoading ? (
           <SkeletonRows />
         ) : rows.length ? (
-          <SortableTable
-            cols={cols}
-            rows={rows}
-            rowKey={(r) => r.number}
-            initialSort={{ key: "rank", dir: 1 }}
-            href={(r) => `/team/${r.number}`}
-          />
+          <SortableTable cols={cols} rows={rows} rowKey={(r) => r.number} initialSort={{ key: "rank", dir: 1 }} href={(r) => `/team/${r.number}`} />
         ) : (
-          <Empty title={term ? "No teams match that filter" : "No teams yet"}>
-            {term ? "Try a team number or school name." : "Teams appear once the sheet syncs."}
+          <Empty title={term ? "No teams match that filter" : "No scouted matches yet"}>
+            {term ? "Try a team number or school name." : "Log matches on the Scout page or in the sheet's Matches tab."}
           </Empty>
         )}
       </div>

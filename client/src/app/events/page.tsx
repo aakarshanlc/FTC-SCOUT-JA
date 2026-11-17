@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { API_URL, del, fetcher, type CalEvent, type EventMatch } from "@/lib/api";
-import { dateParts, fmtRange } from "@/lib/format";
+import { dateParts, fmtRange, seasonLabel } from "@/lib/format";
 import { Empty, ErrorNotice, Notice, PageHead, SkeletonRows, useToast } from "@/components/ui";
-import { IconCalendar, IconChevron, IconExternal, IconTrash } from "@/components/icons";
+import { IconArrowRight, IconCalendar, IconChevron, IconExternal, IconTrash } from "@/components/icons";
 
 export default function EventsPage() {
   const { data, error, isLoading } = useSWR<{ upcoming: CalEvent[]; past: CalEvent[] }>("/api/events");
@@ -91,13 +92,19 @@ function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
         </div>
         <div className="ev-meta">
           {fmtRange(ev.start, ev.end)}
+          {ev.season ? ` · ${seasonLabel(ev.season)} season` : ""}
           {ev.location ? ` · ${ev.location}` : ""}
           {ev.entries ? ` · ${ev.entries} scouting reports` : ""}
         </div>
         <div className="ev-actions">
-          {ev.code ? (
-            <button type="button" className="btn sm dark" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-              Matches <IconChevron style={{ transform: open ? "rotate(180deg)" : undefined }} />
+          {ev.code && ev.season && ev.hasMatches ? (
+            <Link className="btn sm dark" href={`/events/${ev.season}/${ev.code}`}>
+              Results &amp; rankings <IconArrowRight />
+            </Link>
+          ) : null}
+          {ev.code && ev.ongoing ? (
+            <button type="button" className="btn sm" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+              Live matches <IconChevron style={{ transform: open ? "rotate(180deg)" : undefined }} />
             </button>
           ) : null}
           {ev.googleCalendar ? (

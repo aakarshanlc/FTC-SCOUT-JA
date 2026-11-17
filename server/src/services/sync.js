@@ -1,7 +1,8 @@
 import { Event, Match, Scrimmage, SyncLog, Team } from "../models/index.js";
 import { toNum, todayISO, slug } from "../lib/util.js";
 import { col, colKey, loadTab, titleCase } from "./sheet.js";
-import { syncFtcEvents } from "./ftcscout.js";
+import { syncFtcEvents, syncFtcTeams } from "./ftcscout.js";
+import { syncFtcHistory } from "./ftcImport.js";
 
 // Mongo Map keys can't contain "." or start with "$".
 const mapKey = (k) => titleCase(k).replace(/\./g, "").replace(/^\$/, "");
@@ -168,7 +169,10 @@ async function doSync() {
 }
 
 /** Sheet + FTCScout in one go (used on startup and on the interval). */
-export async function syncAll() {
+export async function syncAll({ full = false, force = false } = {}) {
+  // Sheet first so its names/schools are in place before FTCScout fills gaps.
   const [sheet, ftc] = await Promise.all([syncSheet(), syncFtcEvents()]);
-  return { sheet, ftc };
+  const ftcTeams = await syncFtcTeams();
+  const history = await syncFtcHistory({ full, force });
+  return { sheet, ftc, ftcTeams, history };
 }

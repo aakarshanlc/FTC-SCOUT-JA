@@ -42,3 +42,45 @@ export function timeAgo(iso: string | null | undefined): string {
 /** Text observations that carry information ("N/A" and blanks are dropped). */
 export const meaningful = (obs: Record<string, string> = {}) =>
   Object.entries(obs).filter(([, v]) => v && !/^(n\/?a|none|-|–)$/i.test(v.trim()));
+
+/** FTCScout season year → game season label ("2025" → "2025–26"). */
+export const seasonLabel = (s: number) => `${s}–${String(s + 1).slice(-2)}`;
+
+const AWARD_NAMES: Record<string, string> = {
+  Inspire: "Inspire Award",
+  Winner: "Winning Alliance",
+  Finalist: "Finalist Alliance",
+  Think: "Think Award",
+  Connect: "Connect Award",
+  Innovate: "Innovate Award",
+  Design: "Design Award",
+  Motivate: "Motivate Award",
+  Control: "Control Award",
+  Promote: "Promote Award",
+  Reach: "Reach Award",
+  Sustain: "Sustain Award",
+  Compass: "Compass Award",
+  JudgesChoice: "Judges' Choice",
+  TopRanked: "Top Ranked",
+  DeansListWinner: "Dean's List Winner",
+  DeansListFinalist: "Dean's List Finalist",
+  DeansListSemiFinalist: "Dean's List Semi-Finalist",
+  DivisionWinner: "Division Winner",
+  DivisionFinalist: "Division Finalist",
+  ConferenceFinalist: "Conference Finalist",
+};
+
+export function awardName(type: string, placement?: number) {
+  const base = AWARD_NAMES[type] ?? type.replace(/([a-z])([A-Z])/g, "$1 $2");
+  const alliance = type === "Winner" || type === "Finalist" || type.startsWith("DeansList") || type === "TopRanked";
+  return placement && placement > 1 && !alliance ? `${base} · ${ordinal(placement)}` : base;
+}
+
+export const ordinal = (n: number) => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
+export const record = (w?: number | null, l?: number | null, t?: number | null) =>
+  w === null || w === undefined ? "–" : `${w}-${l ?? 0}-${t ?? 0}`;

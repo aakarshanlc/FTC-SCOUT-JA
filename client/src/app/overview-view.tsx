@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { API_URL, post, type Overview } from "@/lib/api";
-import { daysUntil, fmt, fmtRange, meaningful, timeAgo } from "@/lib/format";
+import { daysUntil, fmt, fmtRange, meaningful, record, seasonLabel, timeAgo } from "@/lib/format";
 import { Empty, ErrorNotice, PageHead, Rank, SkeletonRows, Tile, useToast } from "@/components/ui";
 import { IconArrowRight, IconCalendar, IconRefresh, IconSheet } from "@/components/icons";
 
@@ -71,7 +71,16 @@ export function OverviewView() {
       <div className="grid grid-2" style={{ marginTop: 16 }}>
         <section className="card">
           <div className="card-head">
-            <h2 className="display">Leaderboard</h2>
+            <div>
+              <h2 className="display">Leaderboard</h2>
+              <div className="muted" style={{ fontSize: 12.5 }}>
+                {data?.topTeams.length
+                  ? "Our scouting · average match total"
+                  : data?.ftc.season
+                    ? `FTCScout OPR · ${seasonLabel(data.ftc.season)} season`
+                    : ""}
+              </div>
+            </div>
             <Link href="/rankings" className="btn ghost sm">
               Full rankings <IconArrowRight />
             </Link>
@@ -91,6 +100,23 @@ export function OverviewView() {
                 <div style={{ textAlign: "right" }}>
                   <div className="board-score">{fmt(t.avg)}</div>
                   <div className="eyebrow">avg</div>
+                </div>
+              </Link>
+            ))
+          ) : data?.ftc.top.length ? (
+            data.ftc.top.map((t) => (
+              <Link key={t.number} href={`/team/${t.number}`} className="board-row">
+                <Rank rank={t.rank} />
+                <div className="teamcell">
+                  <span className="nm">{t.name || "Unnamed team"}</span>
+                  <span className="n">
+                    {t.number} · {record(t.wins, t.losses, t.ties)}
+                    {t.worldRank ? ` · #${t.worldRank} world` : ""}
+                  </span>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div className="board-score">{fmt(t.opr)}</div>
+                  <div className="eyebrow">opr</div>
                 </div>
               </Link>
             ))

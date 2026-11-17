@@ -18,6 +18,7 @@ const shape = (e) => ({
   liveStream: e.liveStream,
   url: e.url,
   code: e.code,
+  season: e.season ?? null,
   origin: e.origin,
   finished: e.finished,
   ongoing: e.ongoing,

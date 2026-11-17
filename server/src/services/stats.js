@@ -88,6 +88,7 @@ export async function teamDetail(number) {
     name: team?.name || fallback?.name || "",
     org: team?.org || fallback?.org || "",
     robot: team?.robot ?? {},
+    ftc: team?.ftc ?? null,
     rank: mine?.rank ?? null,
     rankedOf: champ.filter((r) => r.rank !== null).length,
     matchStats: {

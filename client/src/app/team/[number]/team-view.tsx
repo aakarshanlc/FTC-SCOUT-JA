@@ -7,7 +7,8 @@ import useSWR, { useSWRConfig } from "swr";
 import { ApiError, del, type MatchDoc, type ScrimDoc, type TeamDetail } from "@/lib/api";
 import { fmt, meaningful } from "@/lib/format";
 import { Empty, ErrorNotice, SkeletonRows, Tile, useToast } from "@/components/ui";
-import { IconArrowLeft, IconPlus, IconTrash } from "@/components/icons";
+import { IconArrowLeft, IconExternal, IconPlus, IconTrash } from "@/components/icons";
+import { FtcHistory } from "./ftc-history";
 
 export function TeamView() {
   const { number } = useParams<{ number: string }>();
@@ -59,13 +60,44 @@ export function TeamView() {
           <span>.</span>
         </div>
         <div>
-          <div className="eyebrow">{data?.org || (isLoading ? "Loading…" : "Unknown school")}</div>
+          <div className="eyebrow">
+            {[
+              data?.org || (isLoading ? "Loading…" : "Unknown school"),
+              data?.ftc?.city,
+              data?.ftc?.rookieYear ? `Rookie ${data.ftc.rookieYear}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </div>
           <h1 className="display">{data?.name || (isLoading ? "" : "Unnamed team")}</h1>
+          {data?.ftc ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+              <a className="btn sm ghost" href={`https://ftcscout.org/teams/${number}`} target="_blank" rel="noreferrer">
+                FTCScout <IconExternal />
+              </a>
+              {data.ftc.website ? (
+                <a className="btn sm ghost" href={data.ftc.website} target="_blank" rel="noreferrer">
+                  Website <IconExternal />
+                </a>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <Link href={`/scout?team=${number}`} className="btn primary">
           <IconPlus /> Log match
         </Link>
       </section>
+
+      <FtcHistory number={number} />
+
+      <div className="pagehead" style={{ paddingTop: 40, paddingBottom: 14 }}>
+        <div>
+          <div className="eyebrow">Our scouting</div>
+          <h2 className="display" style={{ margin: "6px 0 0", fontSize: 36 }}>
+            Scouting report
+          </h2>
+        </div>
+      </div>
 
       <div className="tiles five">
         <Tile

@@ -1,5 +1,5 @@
 import { config } from "../config.js";
-import { Event, SyncLog } from "../models/index.js";
+import { Event, SyncLog, Team } from "../models/index.js";
 
 export const FTC_API = "https://api.ftcscout.org/graphql";
 export const FTC_REST = "https://api.ftcscout.org/rest/v1";
@@ -44,6 +44,7 @@ export async function syncFtcEvents() {
           update: {
             $set: {
               key,
+              season,
               name: e.name,
               kind: e.type,
               start: e.start || null,
@@ -65,7 +66,7 @@ export async function syncFtcEvents() {
     });
     if (ops.length) await Event.bulkWrite(ops);
     const keep = events.map((e) => `ftc-${season}-${e.code}`);
-    await Event.deleteMany({ origin: "ftcscout", key: { $nin: keep } });
+    await Event.deleteMany({ origin: "ftcscout", season, key: { $nin: keep } });
 
     const log = await SyncLog.create({
       kind: "ftcscout",
@@ -86,6 +87,88 @@ export async function syncFtcEvents() {
     });
   }
 }
+
+const TEAMS_QUERY = `
+  query ($region: RegionOption, $limit: Int) {
+    teamsSearch(region: $region, limit: $limit) {
+      number name schoolName rookieYear website
+      location { city country }
+    }
+  }
+`;
+
+/**
+ * Pull every team registered in the region from FTCScout into MongoDB.
+ * FTCScout's region lists a few teams from other countries, so only teams
+ * located in the region's country are kept. Names/schools from the sheet win:
+ * FTCScout only fills a team's name/org when they're still empty.
+ */
+export async function syncFtcTeams() {
+  const started = Date.now();
+  const { region } = config;
+  try {
+    const res = await fetch(FTC_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: TEAMS_QUERY, variables: { region, limit: 1000 } }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`FTCScout responded HTTP ${res.status}`);
+    const body = await res.json();
+    if (body.errors?.length) throw new Error(body.errors[0].message);
+    const all = body.data?.teamsSearch ?? [];
+    const country = REGION_COUNTRY[region];
+    const teams = country ? all.filter((t) => t.location?.country === country) : all;
+
+    const fillIfEmpty = (field, value) => ({
+      $cond: [{ $eq: [{ $ifNull: [`$${field}`, ""] }, ""] }, { $literal: value ?? "" }, `$${field}`],
+    });
+    const ops = teams.map((t) => {
+      const ftc = {
+        name: t.name ?? "",
+        school: t.schoolName ?? "",
+        city: t.location?.city ?? "",
+        rookieYear: t.rookieYear ?? null,
+        website: t.website?.trim() || null,
+      };
+      return {
+        updateOne: {
+          filter: { number: String(t.number) },
+          update: [
+            {
+              $set: {
+                number: String(t.number),
+                name: fillIfEmpty("name", ftc.name),
+                org: fillIfEmpty("org", ftc.school),
+                robot: { $ifNull: ["$robot", {}] },
+                ftc: { $literal: ftc },
+                createdAt: { $ifNull: ["$createdAt", "$$NOW"] },
+                updatedAt: "$$NOW",
+              },
+            },
+          ],
+          upsert: true,
+        },
+      };
+    });
+    if (ops.length) await Team.bulkWrite(ops);
+
+    const log = await SyncLog.create({
+      kind: "ftcscout",
+      ok: true,
+      message: `${teams.length} teams for region ${region}` + (all.length > teams.length ? ` (${all.length - teams.length} outside ${country} skipped)` : ""),
+      counts: { teams: teams.length },
+      durationMs: Date.now() - started,
+    });
+    console.log(`[sync] ftcscout teams ok: ${teams.length}`);
+    return log;
+  } catch (err) {
+    console.error(`[sync] ftcscout teams failed: ${err.message}`);
+    return SyncLog.create({ kind: "ftcscout", ok: false, message: `Teams: ${err.message}`, durationMs: Date.now() - started });
+  }
+}
+
+const REGION_COUNTRY = { JM: "Jamaica" };
 
 // Per-event match schedules are proxied live with a short in-memory cache.
 const matchCache = new Map();

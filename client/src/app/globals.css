@@ -1216,3 +1216,78 @@ table.data {
     transform: rotate(360deg);
   }
 }
+
+/* awards */
+.awards {
+  list-style: none;
+  margin: 0;
+  padding: 0 18px 18px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.awards li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.award-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  background: var(--surface);
+  color: var(--gold);
+  border: 1px solid var(--line);
+}
+.award-icon.signal {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--signal-ink);
+}
+.award-icon.blue {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* event result rows on team page */
+.result-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+.result-row:hover {
+  background: var(--surface-2);
+}
+.result-stats {
+  display: flex;
+  gap: 18px;
+  text-align: right;
+}
+.result-stats .v {
+  font-family: var(--ff-display), sans-serif;
+  font-size: 22px;
+  line-height: 1;
+}
+.result-stats .eyebrow {
+  font-size: 9.5px;
+}
+@media (max-width: 560px) {
+  .result-row {
+    grid-template-columns: 1fr;
+  }
+  .result-stats {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
