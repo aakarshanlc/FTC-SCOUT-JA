@@ -1,0 +1,12 @@
+services:
+  mongo:
+    image: mongo:8
+    container_name: ftc-scout-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - ftc-scout-mongo:/data/db
+
+volumes:
+  ftc-scout-mongo:

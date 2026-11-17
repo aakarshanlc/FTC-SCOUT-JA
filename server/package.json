@@ -1,0 +1,23 @@
+{
+  "name": "ftc-scout-server",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Express + MongoDB API for FTC Scout",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env src/index.js",
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "sync": "node --env-file-if-exists=.env src/scripts/sync.js"
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "mongoose": "^9.12.2",
+    "morgan": "^1.12.1",
+    "papaparse": "^5.7.1"
+  }
+}

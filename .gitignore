@@ -1,33 +1,19 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+node_modules/
+.next/
+out/
+build/
+dist/
 .DS_Store
 *.pem
-
-# debug
 npm-debug.log*
-.dev-server.log*
-.start-server.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files
-.env*
-
-# typescript
 *.tsbuildinfo
 next-env.d.ts
 
-#freebuff
-.freebuff
+# env files (examples are committed)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# local mongo data (docker volume is used by default)
+server/data/
