@@ -6,6 +6,7 @@ import { connectDb } from "./db.js";
 import { api } from "./routes/api.js";
 import { ftc } from "./routes/ftc.js";
 import { clips } from "./routes/clips.js";
+import { scrimmages } from "./routes/scrimmages.js";
 import { allEvents, icsFor } from "./services/calendar.js";
 import { syncAll } from "./services/sync.js";
 import { ah } from "./lib/util.js";
@@ -19,6 +20,7 @@ app.use(morgan("dev"));
 app.get("/", (_req, res) => res.json({ name: "ftc-scout-server", api: "/api", calendar: "/events.ics" }));
 app.use("/api/ftc", ftc);
 app.use("/api/clips", clips);
+app.use("/api/scrims", scrimmages);
 app.use("/api", api);
 app.get(
   "/events.ics",

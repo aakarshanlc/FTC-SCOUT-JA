@@ -1389,3 +1389,175 @@ table.data {
     opacity: 0;
   }
 }
+
+/* scrimmages: tab strip with sliding tabs */
+.stabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stab-wrap {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: 12px 12px 0 0;
+  animation: tab-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: left bottom;
+}
+.stab {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: none;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-3);
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+.stab:hover {
+  color: var(--ink);
+}
+.stab[aria-selected="true"],
+.stab-wrap[data-on="true"] .stab {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.stab-open {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 42px;
+  padding-right: 6px;
+}
+.stab-wrap[data-on="true"] {
+  background: var(--surface);
+  box-shadow: inset 0 3px 0 var(--signal);
+}
+.stab-wrap[data-on="true"] .stab {
+  border-right: 0;
+}
+.stab-x {
+  height: 26px;
+  width: 26px;
+  margin-right: 8px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink-3);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.stab-x:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.stab-count {
+  font-family: var(--ff-mono), monospace;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--surface-2);
+}
+@keyframes tab-in {
+  from {
+    opacity: 0;
+    transform: translateX(-16px) scaleX(0.6);
+    max-width: 0;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    max-width: 300px;
+  }
+}
+.scrim-detail {
+  animation: rise-in 0.25s ease-out;
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* scrimmage cards */
+.scrim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.scrim-card {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.scrim-card:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+.scrim-card.on {
+  border-color: var(--signal);
+}
+.scrim-name {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+.scrim-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* robot build breakdown */
+.caps {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.cap-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 2fr auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 13.5px;
+  margin-bottom: 8px;
+}
+.cap-label {
+  font-weight: 600;
+}
+.cap-bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.cap-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--signal);
+}
+.cap-n {
+  font-size: 12px;
+  color: var(--ink-3);
+}
