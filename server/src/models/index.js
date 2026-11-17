@@ -21,6 +21,14 @@ const teamSchema = new Schema(
       ),
       default: null,
     },
+    // From FIRST's official API: latest registration details
+    first: {
+      type: new Schema(
+        { fullName: String, robotName: String, city: String, homeRegion: String, lastSeason: Number, robotNames: { type: Map, of: String } },
+        { _id: false },
+      ),
+      default: null,
+    },
   },
   { timestamps: true },
 );
@@ -78,7 +86,7 @@ const eventSchema = new Schema(
 
 const syncLogSchema = new Schema(
   {
-    kind: { type: String, enum: ["sheet", "ftcscout"], required: true },
+    kind: { type: String, enum: ["sheet", "ftcscout", "first"], required: true },
     ok: { type: Boolean, required: true },
     message: { type: String, default: "" },
     counts: { type: Map, of: Number, default: {} },
@@ -180,3 +188,59 @@ ftcMatchSchema.index({ teams: 1, season: 1 });
 export const TeamSeason = model("TeamSeason", teamSeasonSchema);
 export const Participation = model("Participation", participationSchema);
 export const FtcMatch = model("FtcMatch", ftcMatchSchema);
+
+// ───────── FIRST FTC Events API mirror (official data FTCScout lacks) ─────────
+
+const firstTeamRef = { _id: false, team: String, name: String };
+
+const firstEventSchema = new Schema(
+  {
+    season: { type: Number, required: true },
+    code: { type: String, required: true },
+    name: String,
+    typeName: String,
+    venue: String,
+    address: String,
+    city: String,
+    country: String,
+    coordinates: [Number], // [lng, lat]
+    fieldCount: Number,
+    website: String,
+    liveStream: String,
+    volunteerUrl: String,
+    timezone: String,
+    start: String,
+    end: String,
+    // Every team registered for the event (some never play a match)
+    teams: [{ _id: false, team: String, name: String, sponsors: String, city: String, country: String, robotName: String, rookieYear: Number }],
+    // Official award list, in FIRST's order (includes Dean's List, judges' awards…)
+    awards: [{ _id: false, awardId: Number, name: String, series: Number, team: String, person: String, school: String }],
+    // Playoff alliance selection
+    alliances: [
+      {
+        _id: false,
+        number: Number,
+        name: String,
+        captain: firstTeamRef,
+        picks: [firstTeamRef],
+        backup: firstTeamRef,
+      },
+    ],
+    // Who advanced to the next level (e.g. World Championship) and why
+    advancement: {
+      advancesTo: String,
+      slots: Number,
+      teams: [{ _id: false, team: String, slot: Number, criteria: String, declined: Boolean, status: String }],
+    },
+    // Official qualification ranking tiebreakers (sortOrder1..6)
+    rankings: [
+      { _id: false, rank: Number, team: String, wins: Number, losses: Number, ties: Number, dq: Number, played: Number, sortOrders: [Number] },
+    ],
+  },
+  { timestamps: true },
+);
+firstEventSchema.index({ season: 1, code: 1 }, { unique: true });
+firstEventSchema.index({ "teams.team": 1 });
+firstEventSchema.index({ "awards.team": 1 });
+
+export const FirstEvent = model("FirstEvent", firstEventSchema);

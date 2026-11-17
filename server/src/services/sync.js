@@ -3,6 +3,7 @@ import { toNum, todayISO, slug } from "../lib/util.js";
 import { col, colKey, loadTab, titleCase } from "./sheet.js";
 import { syncFtcEvents, syncFtcTeams } from "./ftcscout.js";
 import { syncFtcHistory } from "./ftcImport.js";
+import { syncFirst } from "./firstImport.js";
 
 // Mongo Map keys can't contain "." or start with "$".
 const mapKey = (k) => titleCase(k).replace(/\./g, "").replace(/^\$/, "");
@@ -174,5 +175,7 @@ export async function syncAll({ full = false, force = false } = {}) {
   const [sheet, ftc] = await Promise.all([syncSheet(), syncFtcEvents()]);
   const ftcTeams = await syncFtcTeams();
   const history = await syncFtcHistory({ full, force });
-  return { sheet, ftc, ftcTeams, history };
+  // FIRST's official data last: it only fills gaps (robot names, sponsors) on teams.
+  const first = await syncFirst({ full, force });
+  return { sheet, ftc, ftcTeams, history, first };
 }

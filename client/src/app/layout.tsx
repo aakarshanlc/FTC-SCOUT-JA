@@ -33,6 +33,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Header />
           </Suspense>
           <main className="shell">{children}</main>
+          <footer className="shell credits">
+            Data from your scouting sheet,{" "}
+            <a href="https://ftcscout.org" target="_blank" rel="noreferrer">
+              FTCScout
+            </a>{" "}
+            and the{" "}
+            <a href="https://ftc-events.firstinspires.org/services/API" target="_blank" rel="noreferrer">
+              FIRST Tech Challenge Events API
+            </a>
+            .
+          </footer>
         </Providers>
       </body>
     </html>

@@ -65,6 +65,7 @@ export interface TeamDetail {
   org: string;
   robot: Record<string, string>;
   ftc: { name: string; school: string; city: string; rookieYear: number | null; website: string | null } | null;
+  first: { fullName: string; robotName: string | null; city: string; lastSeason: number; robotNames: Record<string, string> } | null;
   rank: number | null;
   rankedOf: number;
   matchStats: { total: Stats; auto: Stats; teleop: Stats };
@@ -204,6 +205,8 @@ export interface FtcRankRow {
 
 export interface FtcAward {
   type: string;
+  label?: string; // official FIRST award name, when known
+  school?: string | null;
   placement: number;
   personName?: string | null;
   season?: number;
@@ -232,6 +235,8 @@ export interface Participation {
   avg: { auto: number | null; dc: number | null; total: number | null } | null;
   max: number | null;
   awards: FtcAward[];
+  alliance?: { seed: number; role: string } | null;
+  advanced?: { criteria: string; to: string | null; declined: boolean } | null;
 }
 
 export interface FtcTeamSeason {
@@ -298,4 +303,26 @@ export interface FtcEventDetail {
   awards: FtcAward[];
   matches: FtcMatch[];
   teamNames: Record<string, string>;
+  venue: string | null;
+  address: string | null;
+  coordinates: { lat: number; lng: number } | null;
+  fieldCount: number | null;
+  volunteerUrl: string | null;
+  alliances: FirstAlliance[];
+  advancement: { advancesTo: string | null; slots: number | null; teams: { team: string; name: string; slot: number; criteria: string; declined: boolean }[] } | null;
+  registered: { number: string; name: string; city: string; robotName: string | null; played: boolean }[];
+}
+
+export interface FirstTeamRef {
+  team: string;
+  name: string;
+}
+
+export interface FirstAlliance {
+  number: number;
+  name: string;
+  captain: FirstTeamRef | null;
+  picks: FirstTeamRef[];
+  backup: FirstTeamRef | null;
+  result: "Winner" | "Finalist" | null;
 }

@@ -123,7 +123,7 @@ export function AwardList({ awards, showTeam, showEvent }: { awards: FtcAward[];
             ★
           </span>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600 }}>{awardName(a.type, a.placement)}</div>
+            <div style={{ fontWeight: 600 }}>{a.label ?? awardName(a.type, a.placement)}</div>
             <div className="muted" style={{ fontSize: 13 }}>
               {showTeam && a.number ? (
                 <Link href={`/team/${a.number}`} style={{ color: "var(--ink-2)", fontWeight: 600 }}>

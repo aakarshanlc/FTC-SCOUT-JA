@@ -88,18 +88,32 @@ export function FtcHistory({ number }: { number: string }) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 700, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                   {e.eventName}
-                  <span className={`badge ${e.eventType === "Championship" ? "signal" : ""}`}>{e.eventType}</span>
+                  <span className={`badge ${/Championship/.test(e.eventType) ? "signal" : ""}`}>{eventTypeLabel(e.eventType)}</span>
                   {e.remote ? <span className="badge">Remote</span> : null}
                 </div>
                 <div className="muted" style={{ fontSize: 13 }}>
                   {fmtRange(e.start, e.end)}
                   {e.location ? ` · ${e.location}` : ""}
                 </div>
+                {e.alliance || e.advanced ? (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {e.alliance ? (
+                      <span className="badge blue">
+                        Alliance {e.alliance.seed} · {e.alliance.role}
+                      </span>
+                    ) : null}
+                    {e.advanced ? (
+                      <span className="badge good" title={e.advanced.criteria}>
+                        {e.advanced.declined ? "Declined Worlds spot" : "Advanced to Worlds"}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
                 {e.awards.length ? (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                     {e.awards.map((a) => (
                       <span key={`${a.type}-${a.placement}`} className="badge signal">
-                        ★ {awardName(a.type, a.placement)}
+                        ★ {a.label ?? awardName(a.type, a.placement)}
                       </span>
                     ))}
                   </div>
@@ -124,6 +138,9 @@ export function FtcHistory({ number }: { number: string }) {
     </section>
   );
 }
+
+const eventTypeLabel = (t: string) =>
+  ({ FIRSTChampionship: "World Championship", DistrictChampionship: "District Championship", LeagueMeet: "League Meet", LeagueTournament: "League Tournament", OffSeason: "Off-season", Scrimmage: "Scrimmage" } as Record<string, string>)[t] ?? t;
 
 const sum = (xs: (number | null)[]) => (xs.some((x) => x !== null) ? xs.reduce<number>((a, b) => a + (b ?? 0), 0) : null);
 

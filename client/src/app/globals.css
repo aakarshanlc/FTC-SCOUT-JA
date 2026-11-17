@@ -128,11 +128,11 @@ textarea {
 .shell {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 16px 80px;
+  padding: 0 16px 24px;
 }
 @media (min-width: 768px) {
   .shell {
-    padding: 0 28px 96px;
+    padding: 0 28px 24px;
   }
 }
 
@@ -1291,3 +1291,15 @@ table.data {
     text-align: left;
   }
 }
+
+/* advancement to Worlds */
+.adv { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; padding: 0 18px 18px; }
+.adv-team { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--paper); }
+.adv-team:hover { border-color: var(--ink); }
+.adv-team.declined { opacity: 0.55; }
+.adv-slot { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--signal); color: var(--signal-ink); font-family: var(--ff-display), sans-serif; font-size: 18px; }
+
+/* data credits (FIRST asks API users to link back) */
+.credits { padding-top: 0; padding-bottom: 110px; font-size: 12.5px; color: var(--ink-3); }
+.credits a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+@media (min-width: 900px) { .credits { padding-bottom: 32px; } }

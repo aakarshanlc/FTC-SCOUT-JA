@@ -14,4 +14,7 @@ export const config = {
   syncIntervalSeconds: int(process.env.SYNC_INTERVAL_SECONDS, 60),
   season: int(process.env.FTC_SEASON, 2026),
   region: process.env.FTC_REGION || "JM",
+  // FIRST FTC Events API (https://ftc-events.firstinspires.org/services/API)
+  firstApiUser: process.env.FTC_API_USER || "",
+  firstApiToken: process.env.FTC_API_TOKEN || "",
 };

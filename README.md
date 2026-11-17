@@ -15,6 +15,8 @@ ftc-scout/
 - **FTCScout → MongoDB.** From the [FTCScout GraphQL API](https://api.ftcscout.org/graphql) the server imports every team registered in Jamaica (teams FTCScout files under region `JM` but locates elsewhere are skipped) and their full history since 2019: per-season OPR with world rank, per-event rank/record/OPR, awards, and every match a Jamaican team played. Past seasons import once; the current and previous seasons refresh every 10 minutes. `npm run sync -- --full` re-imports everything. Team names and schools from the sheet take precedence; FTCScout fills the gaps.
 - **App → MongoDB.** Matches, scrimmage reports and events logged on the **Scout** page are saved with `source: "manual"`. The sync never touches them, and they can be deleted from the team page.
 
+- **FIRST FTC Events API → MongoDB** (optional, needs a free key in `FTC_API_USER` / `FTC_API_TOKEN`). For every Jamaican event since 2019 it imports the official award list (including Dean's List and judged awards, and awards FTCScout hasn't published), playoff alliance selections, advancement to the World Championship, every registered team with robot names and sponsors, ranking tiebreakers, and venue details. FIRST's site asks not to be scraped, so this uses their API only. Data from it is credited in the site footer, as FIRST requests.
+
 The client only talks to the Express API (`NEXT_PUBLIC_API_URL`) and refreshes every 30 seconds.
 
 ## Run locally
@@ -51,9 +53,9 @@ Open http://localhost:3000. `npm run sync` in `server/` does a one-off pull with
 | GET | `/api/ftc/rankings?season=` | Jamaica leaderboard by OPR, with record, world rank, awards |
 | GET | `/api/ftc/teams/:number` | Per-season stats, event results and awards for a team |
 | GET | `/api/ftc/teams/:number/matches?season=` | A team's match history |
-| GET | `/api/ftc/events/:season/:code` | Event rankings, awards and matches |
+| GET | `/api/ftc/events/:season/:code` | Event rankings, matches, awards, alliances, advancement, registered teams and venue |
 | GET | `/events.ics` | Subscribable iCalendar feed |
 
 ## Configuration
 
-`server/.env` sets `PORT`, `MONGODB_URI`, `CLIENT_ORIGIN` (CORS), `SHEET_ID`, `SYNC_INTERVAL_SECONDS`, `FTC_SEASON` and `FTC_REGION`. `client/.env.local` sets `NEXT_PUBLIC_API_URL`. The sheet must be shared as **Anyone with the link**. Headers are matched case-insensitively by keyword (`number`, `name`, `total`, …).
+`server/.env` sets `PORT`, `MONGODB_URI`, `CLIENT_ORIGIN` (CORS), `SHEET_ID`, `SYNC_INTERVAL_SECONDS`, `FTC_SEASON`, `FTC_REGION`, and optionally `FTC_API_USER` / `FTC_API_TOKEN`. `client/.env.local` sets `NEXT_PUBLIC_API_URL`. The sheet must be shared as **Anyone with the link**. Headers are matched case-insensitively by keyword (`number`, `name`, `total`, …).

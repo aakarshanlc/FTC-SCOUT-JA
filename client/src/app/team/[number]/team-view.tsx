@@ -70,6 +70,20 @@ export function TeamView() {
               .join(" · ")}
           </div>
           <h1 className="display">{data?.name || (isLoading ? "" : "Unnamed team")}</h1>
+          {data?.first?.robotName ? (
+            <div style={{ marginTop: 6, fontSize: 14 }}>
+              <span className="muted">Robot · </span>
+              <strong>{data.first.robotName}</strong>
+            </div>
+          ) : null}
+          {data?.first?.fullName && data.first.fullName !== data.name ? (
+            <details style={{ marginTop: 6, fontSize: 13, maxWidth: 640 }}>
+              <summary className="muted" style={{ cursor: "pointer" }}>
+                Sponsors &amp; registered name
+              </summary>
+              <p style={{ margin: "6px 0 0", color: "var(--ink-2)" }}>{data.first.fullName.split("/").join(" · ")}</p>
+            </details>
+          ) : null}
           {data?.ftc ? (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
               <a className="btn sm ghost" href={`https://ftcscout.org/teams/${number}`} target="_blank" rel="noreferrer">

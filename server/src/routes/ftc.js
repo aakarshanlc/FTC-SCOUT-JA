@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Event, FtcMatch, Participation, Team, TeamSeason } from "../models/index.js";
+import { Event, FirstEvent, FtcMatch, Participation, Team, TeamSeason } from "../models/index.js";
 import { HttpError, ah } from "../lib/util.js";
 
 export const ftc = Router();
@@ -7,6 +7,33 @@ export const ftc = Router();
 // FIRST's award hierarchy, so lists lead with Inspire and the alliances.
 const AWARD_ORDER = ["Inspire", "Winner", "Finalist", "Think", "Connect", "Innovate", "Design", "Motivate", "Control", "Reach", "Sustain", "Promote", "Compass", "JudgesChoice", "TopRanked", "DeansListWinner", "DeansListFinalist", "DeansListSemiFinalist"];
 const awardOrder = (t) => (AWARD_ORDER.includes(t) ? AWARD_ORDER.indexOf(t) : 99);
+
+// FIRST names awards in prose ("Inspire Award 2nd Place"); map to a coarse type for styling.
+const firstType = (name = "") =>
+  /inspire/i.test(name) ? "Inspire"
+  : /winning alliance/i.test(name) ? "Winner"
+  : /finalist alliance/i.test(name) ? "Finalist"
+  : /dean/i.test(name) ? "DeansList"
+  : "Other";
+const firstAward = (a) => ({
+  type: firstType(a.name),
+  label: a.name,
+  placement: a.series,
+  personName: a.person ?? null,
+  number: a.team ?? undefined,
+  school: a.school ?? null,
+});
+
+/** A team's playoff alliance at an event: seed and role. */
+function allianceOf(fe, team) {
+  for (const a of fe?.alliances ?? []) {
+    if (a.captain?.team === team) return { seed: a.number, role: "Captain" };
+    const i = (a.picks ?? []).findIndex((p) => p.team === team);
+    if (i >= 0) return { seed: a.number, role: `Pick ${i + 1}` };
+    if (a.backup?.team === team) return { seed: a.number, role: "Backup" };
+  }
+  return null;
+}
 
 const seasonParam = (v) => {
   const s = Number.parseInt(String(v ?? ""), 10);
@@ -105,6 +132,17 @@ ftc.get(
         (await TeamSeason.distinct("season", { team })).map(async (s) => [s, (await ftcRankings(s)).find((r) => r.number === team)?.rank ?? null]),
       ),
     ]);
+    const firstEvents = await FirstEvent.find({ $or: [{ "teams.team": team }, { "awards.team": team }] }).lean();
+    const firstBy = new Map(firstEvents.map((f) => [`${f.season}:${f.code}`, f]));
+    for (const p of parts) {
+      const fe = firstBy.get(`${p.season}:${p.eventCode}`);
+      if (!fe) continue;
+      // FIRST's award list is the official, complete one — prefer it.
+      if (fe.awards?.length) p.awards = fe.awards.filter((a) => a.team === team).map(firstAward);
+      p.alliance = allianceOf(fe, team);
+      const adv = fe.advancement?.teams?.find((t) => t.team === team);
+      p.advanced = adv ? { criteria: adv.criteria, to: fe.advancement.advancesTo, declined: adv.declined } : null;
+    }
     const regionRank = new Map(regional);
     const regionSize = new Map(
       (await TeamSeason.aggregate([{ $match: { "tot.value": { $ne: null } } }, { $group: { _id: "$season", n: { $sum: 1 } } }])).map((r) => [r._id, r.n]),
@@ -130,7 +168,8 @@ ftc.get(
     const awards = parts
       .flatMap((p) => (p.awards ?? []).map((a) => ({ ...a, season: p.season, eventCode: p.eventCode, eventName: p.eventName })))
       .sort((a, b) => b.season - a.season || awardOrder(a.type) - awardOrder(b.type) || a.placement - b.placement);
-    res.json({ seasons: out, awards });
+    const latest = firstEvents.flatMap((f) => (f.teams ?? []).filter((t) => t.team === team).map((t) => ({ ...t, season: f.season }))).sort((a, b) => b.season - a.season)[0];
+    res.json({ seasons: out, awards, sponsors: latest?.sponsors ?? null });
   }),
 );
 
@@ -150,13 +189,20 @@ ftc.get(
   ah(async (req, res) => {
     const season = seasonParam(req.params.season);
     const code = String(req.params.code);
-    const [event, parts, matches] = await Promise.all([
+    const [event, parts, matches, fe] = await Promise.all([
       Event.findOne({ key: `ftc-${season}-${code}` }).lean(),
       Participation.find({ season, eventCode: code }).lean(),
       FtcMatch.find({ season, eventCode: code }).sort({ time: 1, matchId: 1 }).lean(),
+      FirstEvent.findOne({ season, code }).lean(),
     ]);
-    if (!event && !parts.length) throw new HttpError(404, `No data for ${code} (${season})`);
-    const names = await teamNames([...parts.map((p) => p.team), ...matches.flatMap((m) => m.teams)]);
+    if (!event && !parts.length && !fe) throw new HttpError(404, `No data for ${code} (${season})`);
+    const names = await teamNames([
+      ...parts.map((p) => p.team),
+      ...matches.flatMap((m) => m.teams),
+      ...(fe?.teams ?? []).map((t) => t.team),
+    ]);
+    // Visiting teams aren't in our Team collection; use FIRST's registration name.
+    for (const t of fe?.teams ?? []) if (!names.has(t.team)) names.set(t.team, { number: t.team, name: t.name });
     const named = (n) => ({ number: n, name: names.get(n)?.name ?? "" });
     const rankings = parts
       .map((p) => ({
@@ -174,7 +220,9 @@ ftc.get(
         max: p.max,
       }))
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
-    const awards = parts
+    const awards = fe?.awards?.length
+      ? fe.awards.map((a) => ({ ...firstAward(a), name: a.team ? names.get(a.team)?.name ?? "" : undefined }))
+      : parts
       .flatMap((p) => (p.awards ?? []).map((a) => ({ ...a, ...named(p.team) })))
       .sort((a, b) => awardOrder(a.type) - awardOrder(b.type) || a.placement - b.placement);
     const first = parts[0];
@@ -192,6 +240,23 @@ ftc.get(
       rankings,
       awards,
       matches,
+      venue: fe?.venue || null,
+      address: fe ? [fe.address, fe.city, fe.country].filter(Boolean).join(", ") : null,
+      coordinates: fe?.coordinates?.length === 2 ? { lng: fe.coordinates[0], lat: fe.coordinates[1] } : null,
+      fieldCount: fe?.fieldCount ?? null,
+      volunteerUrl: fe?.volunteerUrl ?? null,
+      alliances: (fe?.alliances ?? []).map((a) => ({
+        ...a,
+        result: a.captain && awards.some((w) => w.type === "Winner" && w.number === a.captain.team)
+          ? "Winner"
+          : a.captain && awards.some((w) => w.type === "Finalist" && w.number === a.captain.team)
+            ? "Finalist"
+            : null,
+      })),
+      advancement: fe?.advancement?.teams?.length
+        ? { ...fe.advancement, teams: fe.advancement.teams.map((t) => ({ ...t, name: names.get(t.team)?.name ?? "" })) }
+        : null,
+      registered: (fe?.teams ?? []).map((t) => ({ number: t.team, name: t.name, city: t.city, robotName: t.robotName, played: parts.some((p) => p.team === t.team) })),
       teamNames: Object.fromEntries([...names].map(([n, t]) => [n, t.name])),
     });
   }),
