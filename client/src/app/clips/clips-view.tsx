@@ -90,7 +90,7 @@ export function ClipsView() {
       <PageHead
         eyebrow="Match video"
         title="Video"
-        sub="Paste a YouTube recording of an event. Every match in it becomes its own clip you can play right here — nothing is downloaded."
+        sub="Watch match clips from event recordings. Each match plays on its own, and the videos stay on YouTube."
       >
         {user && !adding ? (
           <button
@@ -237,9 +237,7 @@ function AddRecording({
             placeholder="https://www.youtube.com/watch?v=…"
           />
           <span className="hint">
-            If YouTube shares when the stream started, matches line up
-            automatically. Otherwise you&apos;ll pick one match and the time it
-            starts, and we line up the rest.
+            Livestreams line up on their own. For other videos you&apos;ll pick one match and say when it starts, and the rest follow from that.
           </span>
         </div>
         <div className="field">
@@ -534,7 +532,7 @@ function RecordingView({
                   {rec.clips?.length ?? 0} matches ·{" "}
                   {rec.calibrated
                     ? "lined up"
-                    : "auto-aligned from YouTube's stream start — clips may start a little early"}
+                    : "timed automatically, so clips may start a little early"}
                 </>
               ) : (
                 "Loading…"
@@ -548,11 +546,7 @@ function RecordingView({
         <div style={{ marginTop: 12 }}>
           <Notice>
             <span>
-              Clips are lined up from when YouTube says the stream started,
-              which is usually a few seconds to a minute late — so clips may
-              begin early. To make them exact: play any clip, pause the moment
-              the match starts, and press <strong>Match starts here</strong>.
-              Every clip shifts to match.
+              These clips are timed from when YouTube says the stream started, which is often a little late, so they can start early. To fix that, play any clip, pause right as the match starts and press <strong>Match starts here</strong>. All the other clips move with it.
             </span>
           </Notice>
         </div>

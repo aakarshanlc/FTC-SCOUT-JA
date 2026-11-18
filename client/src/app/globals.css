@@ -1638,3 +1638,111 @@ table.data {
 
 /* "signed in to edit" prompt */
 .signin-prompt { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 16px; }
+
+/* ───────── button feel: a small lift on hover, a small press on click ───────── */
+.btn,
+.chip,
+.seg button {
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease;
+}
+@media (hover: hover) {
+  .btn:not(:disabled):not(.ghost):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px -4px rgb(0 0 0 / 0.25);
+  }
+  .btn.primary:not(:disabled):hover {
+    box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--signal) 70%, transparent);
+  }
+  .btn.dark:not(:disabled):hover {
+    filter: brightness(1.25);
+  }
+  .chip:hover {
+    border-color: var(--line-strong);
+    color: var(--ink);
+  }
+  .chip[aria-pressed="true"]:hover {
+    color: var(--paper);
+  }
+  .seg button:hover:not([aria-pressed="true"]) {
+    color: var(--ink);
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+}
+.btn:not(:disabled):active,
+.chip:active,
+.seg button:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+.btn:focus-visible,
+.chip:focus-visible,
+.seg button:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .chip,
+  .seg button {
+    transition: none;
+  }
+  .btn:not(:disabled):hover,
+  .btn:not(:disabled):active,
+  .chip:active,
+  .seg button:active {
+    transform: none;
+  }
+}
+
+/* site footer */
+.site-foot {
+  margin-top: 56px;
+  padding-top: 20px;
+  padding-bottom: 110px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-3);
+}
+@media (min-width: 900px) {
+  .site-foot { padding-bottom: 36px; }
+}
+.site-foot-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 24px;
+}
+.site-foot-name { color: var(--ink); font-weight: 600; }
+.site-foot-links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.site-foot-links a { color: var(--ink-2); }
+.site-foot-links a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.site-foot-credit { margin: 10px 0 0; font-size: 12.5px; }
+.site-foot-credit a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+.sync-note { font-size: 12.5px; align-self: center; }
+
+/* prose pages (about, privacy) */
+.prose {
+  max-width: 720px;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.prose h2 {
+  font-family: var(--ff-display);
+  font-size: 26px;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 34px 0 8px;
+}
+.prose p, .prose ul { margin: 0 0 14px; }
+.prose ul { padding-left: 20px; }
+.prose li { margin-bottom: 6px; }
+.prose a { color: var(--signal); font-weight: 600; }
+.prose strong { color: var(--ink); }
+
+/* calendar subscribe */
+.subscribe-panel { margin-bottom: 16px; }
+.subscribe-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.subscribe-foot { margin: 0; padding: 0 18px 16px; font-size: 13px; }
+.subscribe-foot a { color: var(--signal); font-weight: 600; }

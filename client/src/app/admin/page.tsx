@@ -43,9 +43,10 @@ export default function AdminPage() {
       <PageHead
         eyebrow={isAdmin ? "Admin" : "Account"}
         title={isAdmin ? "Team" : "Account"}
-        sub={isAdmin ? "Invite scouts, change roles and remove access. Viewing the site never needs an account." : undefined}
+        sub={isAdmin ? "Invite scouts, change roles or remove access. Nobody needs an account just to view the site." : undefined}
       />
       {isAdmin ? <TeamAdmin me={user} /> : null}
+      {isAdmin ? <EmailUpdates /> : null}
       <ChangePassword me={user} />
     </>
   );
@@ -116,8 +117,8 @@ function TeamAdmin({ me }: { me: AuthUser }) {
           <div className="field">
             <label htmlFor="inv-role">Role</label>
             <select id="inv-role" name="role" className="select input" defaultValue="scout">
-              <option value="scout">Scout — log matches, events, video</option>
-              <option value="admin">Admin — also manage the team</option>
+              <option value="scout">Scout: logs matches, events and video</option>
+              <option value="admin">Admin: also manages the team</option>
             </select>
           </div>
           <div className="field" style={{ justifyContent: "flex-end" }}>
@@ -134,7 +135,7 @@ function TeamAdmin({ me }: { me: AuthUser }) {
             <div className="full invite-link">
               <div style={{ fontWeight: 600 }}>Send this link to {link.name}</div>
               <div className="muted" style={{ fontSize: 13 }}>
-                It works once and expires {when(link.expires)}. Share it privately (WhatsApp, text, email) — anyone with it can claim the account.
+                It works once and expires {when(link.expires)}. Send it privately, since anyone with the link can claim the account.
               </div>
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                 <input className="input num" readOnly value={link.url} onFocus={(e) => e.currentTarget.select()} aria-label="Invite link" />
@@ -307,6 +308,111 @@ function ChangePassword({ me }: { me: AuthUser }) {
           </button>
         </div>
       </form>
+    </section>
+  );
+}
+
+interface UpdatesStatus {
+  enabled: boolean;
+  smtp?: boolean;
+  subscribers?: number;
+  pending?: number;
+  recent?: { kind: "reminder" | "update"; subject: string; sent: number; failed: number; at: string; by: string | null }[];
+}
+
+function EmailUpdates() {
+  const { data, mutate } = useSWR<UpdatesStatus>("/api/updates/status", { refreshInterval: 0 });
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const send = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    const n = data?.subscribers ?? 0;
+    if (!confirm(`Send this to ${n} ${n === 1 ? "person" : "people"}?`)) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await post<{ sent: number; failed: number }>("/api/updates/send", { subject: f.get("subject"), message: f.get("message") });
+      setMsg({ ok: !r.failed, text: `Sent to ${r.sent}${r.failed ? `, ${r.failed} failed` : ""}.` });
+      form.reset();
+      mutate();
+    } catch (x) {
+      setMsg({ ok: false, text: x instanceof Error ? x.message : "Couldn't send" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="card" style={{ marginTop: 16 }}>
+      <div className="card-head">
+        <div>
+          <h2 className="display">Email updates</h2>
+          <div className="muted" style={{ fontSize: 13 }}>
+            {data?.subscribers !== undefined
+              ? `${data.subscribers} signed up${data.pending ? ` · ${data.pending} waiting to confirm` : ""}. Reminders go out a week and a day before each event.`
+              : ""}
+          </div>
+        </div>
+      </div>
+      {data && !data.smtp ? (
+        <div className="card-body" style={{ paddingBottom: 0 }}>
+          <Notice>
+            Sending is off until SMTP_URL and MAIL_FROM are set on the server. A Gmail account with an app password works.
+          </Notice>
+        </div>
+      ) : null}
+      <form className="card-body form-grid" onSubmit={send}>
+        <div className="field full">
+          <label htmlFor="up-subject">Subject</label>
+          <input id="up-subject" name="subject" className="input" required maxLength={150} placeholder="Kickoff is this Saturday" />
+        </div>
+        <div className="field full">
+          <label htmlFor="up-message">Message</label>
+          <textarea id="up-message" name="message" className="input" required rows={5} maxLength={5000} style={{ height: "auto", padding: 12 }} />
+          <span className="hint">Leave a blank line between paragraphs.</span>
+        </div>
+        {msg ? (
+          <div className="full">
+            <Notice kind={msg.ok ? "ok" : "error"}>{msg.text}</Notice>
+          </div>
+        ) : null}
+        <div className="full">
+          <button className="btn primary" type="submit" disabled={busy || !data?.subscribers}>
+            {busy ? "Sending…" : "Send to everyone"}
+          </button>
+        </div>
+      </form>
+      {data?.recent?.length ? (
+        <div className="tablewrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>Sent</th>
+                <th>Subject</th>
+                <th className="r">Delivered</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.recent.map((m, i) => (
+                <tr key={i}>
+                  <td className="muted">{when(m.at)}</td>
+                  <td>
+                    {m.subject}
+                    <span className="muted"> · {m.kind === "reminder" ? "reminder" : (m.by ?? "update")}</span>
+                  </td>
+                  <td className="r num">
+                    {m.sent}
+                    {m.failed ? ` (${m.failed} failed)` : ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </section>
   );
 }

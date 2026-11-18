@@ -280,7 +280,7 @@ async function doSync(full) {
     kind: "ftcscout",
     ok: errors.length === 0,
     message: errors.length
-      ? `History import errors — ${errors.join("; ")}`
+      ? `History import errors: ${errors.join("; ")}`
       : `History: seasons ${seasons[0]}–${seasons.at(-1)} imported`,
     counts,
     durationMs: Date.now() - started,

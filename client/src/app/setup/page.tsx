@@ -42,7 +42,7 @@ export default function SetupPage() {
         {loading ? null : !setupNeeded ? (
           <Notice kind="ok">
             <span>
-              Setup is done — the first admin already exists. <Link href="/login">Sign in</Link>
+              Setup is already done. <Link href="/login">Sign in</Link>
             </span>
           </Notice>
         ) : !setupEnabled ? (

@@ -15,27 +15,20 @@ export default function EventsPage() {
   const toast = useToast();
   const list = data?.[tab] ?? [];
 
-  const copyFeed = async () => {
-    const url = `${API_URL || window.location.origin}/events.ics`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.show("Calendar feed link copied");
-    } catch {
-      window.open(url, "_blank");
-    }
-  };
+  const [subscribing, setSubscribing] = useState(false);
 
   return (
     <>
       <PageHead
         eyebrow="Season calendar"
         title="Events"
-        sub="Official FTCScout events, plus scrimmages and anything added in the sheet or here."
+        sub="Official events, scrimmages and anything else on the FTC Jamaica calendar."
       >
-        <button type="button" className="btn" onClick={copyFeed}>
-          <IconCalendar /> Subscribe (.ics)
+        <button type="button" className="btn" onClick={() => setSubscribing((o) => !o)} aria-expanded={subscribing}>
+          <IconCalendar /> Add to my calendar
         </button>
       </PageHead>
+      {subscribing ? <SubscribePanel onClose={() => setSubscribing(false)} onCopied={() => toast.show("Calendar link copied")} /> : null}
       <ErrorNotice error={error} />
       <div className="toolbar">
         <div className="seg" role="group" aria-label="Which events">
@@ -206,5 +199,54 @@ function Matches({ code }: { code: string }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** Subscribe links for the live calendar feed. Calendars that subscribe pick up new and changed events on their own. */
+function SubscribePanel({ onClose, onCopied }: { onClose: () => void; onCopied: () => void }) {
+  const origin = (API_URL && API_URL !== "/" ? API_URL : window.location.origin).replace(/\/$/, "");
+  const feed = `${origin}/events.ics`;
+  const webcal = feed.replace(/^https?:\/\//, "webcal://");
+  const google = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`;
+  const outlook = `https://outlook.live.com/calendar/0/addfromweb?url=${encodeURIComponent(feed)}&name=${encodeURIComponent("FTC Jamaica Events")}`;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(feed);
+      onCopied();
+    } catch {
+      window.prompt("Copy this calendar link", feed);
+    }
+  };
+  return (
+    <section className="card subscribe-panel">
+      <div className="card-head">
+        <div>
+          <h2 className="display">Add the FTC Jamaica calendar</h2>
+          <div className="muted" style={{ fontSize: 13.5 }}>
+            Every event on this page shows up in your calendar, and changes come through on their own.
+          </div>
+        </div>
+        <button type="button" className="btn sm ghost" onClick={onClose}>
+          Close
+        </button>
+      </div>
+      <div className="card-body subscribe-options">
+        <a className="btn primary" href={google} target="_blank" rel="noreferrer">
+          Google Calendar
+        </a>
+        <a className="btn" href={webcal}>
+          Apple Calendar
+        </a>
+        <a className="btn" href={outlook} target="_blank" rel="noreferrer">
+          Outlook
+        </a>
+        <button type="button" className="btn ghost" onClick={copy}>
+          Copy link
+        </button>
+      </div>
+      <p className="muted subscribe-foot">
+        Want a reminder by email instead? <Link href="/updates">Sign up for email updates</Link>.
+      </p>
+    </section>
   );
 }

@@ -64,7 +64,7 @@ auth.post(
   ah(async (req, res) => {
     const code = process.env.ADMIN_SETUP_CODE;
     if (!code) throw new HttpError(403, "Setup is disabled. Set ADMIN_SETUP_CODE on the server first.");
-    if ((await User.estimatedDocumentCount()) > 0) throw new HttpError(409, "The first admin already exists — sign in instead.");
+    if ((await User.estimatedDocumentCount()) > 0) throw new HttpError(409, "An admin already exists. Sign in instead.");
     if (!sameSecret(req.body.code, code)) throw new HttpError(403, "That setup code isn't right");
     const user = await User.create({
       email: email(req.body.email),

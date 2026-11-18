@@ -23,7 +23,7 @@ export function ScoutForms() {
       <PageHead
         eyebrow="Data entry"
         title="Scout"
-        sub="Entries saved here go straight into the database and show up everywhere instantly. Rows from the Google Sheet stay managed in the sheet."
+        sub="Anything you log here shows up on the site right away."
       />
       {!user ? (
         loading ? null : (
@@ -147,7 +147,7 @@ function MatchForm({ team, teams }: { team: string; teams: ChampRow[] }) {
           placeholder="e.g. 3981"
         />
       </Field>
-      <Field label="Match label" hint="Optional — Q4, Practice 2…">
+      <Field label="Match label" hint="Optional, like Q4 or Practice 2">
         <input className="input" name="label" data-clear placeholder="Q1" />
       </Field>
       <Field label="Auto points">

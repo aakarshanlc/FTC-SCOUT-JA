@@ -177,8 +177,7 @@ export function TeamView() {
       {noScouting ? (
         <div className="card signin-prompt">
           <span className="muted">
-            No scouting data for this team yet — no logged matches, scrimmage
-            reports or robot notes.
+            No scouting data for this team yet.
           </span>
           {user ? (
             <Link className="btn sm" href={`/scout?team=${number}`}>
@@ -315,7 +314,7 @@ function ScoreChart({ matches }: { matches: MatchDoc[] }) {
   const scored = matches.filter((m) => m.total !== null);
   if (!scored.length)
     return (
-      <Empty title="No scores yet">Logged match totals will chart here.</Empty>
+      <Empty title="No scores yet">Scores show up here once matches are logged.</Empty>
     );
   const max = Math.max(...scored.map((m) => m.total ?? 0), 1);
   return (

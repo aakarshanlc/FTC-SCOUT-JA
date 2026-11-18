@@ -111,7 +111,7 @@ export function ScrimmagesView() {
       <PageHead
         eyebrow="Pre-season & practice"
         title="Scrimmages"
-        sub="Every scrimmage — from your scouts' reports and the official calendar. Open one to see who came, what was played and how it went."
+        sub="Past and upcoming scrimmages. Open one to see which teams came, what matches were played and how everyone did."
       />
       <ErrorNotice error={error} />
 
@@ -156,7 +156,7 @@ export function ScrimmagesView() {
         )
       ) : (
         <div className="card" style={{ marginTop: 16 }}>
-          <Empty title="No scrimmages yet">Add rows to the sheet&apos;s Scrimmages tab, or log a report on the Scout page.</Empty>
+          <Empty title="No scrimmages yet">Scouts can add one from the Scout page.</Empty>
         </div>
       )}
     </>

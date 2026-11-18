@@ -178,7 +178,7 @@ api.delete(
     const doc = await Match.findById(objectId(req.params.id));
     if (!doc) throw new HttpError(404, "Match not found");
     if (doc.source !== "manual")
-      throw new HttpError(403, "This entry comes from the Google Sheet — edit it there");
+      throw new HttpError(403, "This entry came from the Google Sheet. Edit it there.");
     await doc.deleteOne();
     res.status(204).end();
   }),
@@ -231,7 +231,7 @@ api.delete(
     const doc = await Scrimmage.findById(objectId(req.params.id));
     if (!doc) throw new HttpError(404, "Entry not found");
     if (doc.source !== "manual")
-      throw new HttpError(403, "This entry comes from the Google Sheet — edit it there");
+      throw new HttpError(403, "This entry came from the Google Sheet. Edit it there.");
     await doc.deleteOne();
     res.status(204).end();
   }),

@@ -46,11 +46,14 @@ Rules that matter:
 - `/api/ftc/*` (`routes/ftc.js`): seasons, OPR rankings, team history, team matches (with `clip`), event detail (rankings, matches with `clip`, awards preferring FIRST's list, alliances, advancement, registered teams, venue).
 - `/api/clips/*` (`routes/clips.js`): recordings CRUD; POST takes `{url, season, eventCode}` (or `anchorMatchId` + `anchorAt` for non-livestream uploads); PATCH `{matchId, at}` fine-tunes all clips. Rejects unplayable videos.
 - `/api/scrims/*` (`routes/scrimmages.js`): merged scrimmage list + detail (teams, matches, benchmarks, robot-build breakdown from pit notes).
-- `/events.ics`: subscribable calendar.
+- `/events.ics`: subscribable calendar (the Events page has Google/Apple/Outlook subscribe links; feed asks apps to refresh every 6h).
+- `/api/updates/*` (`routes/updates.js`, `services/mail.js`, `services/updates.js`): email updates. Double opt-in sign-up (`Subscriber`, unconfirmed rows expire in 7 days), confirm/unsubscribe by token (unsubscribe deletes the row), admin `POST /send`. The daily cron also sends event reminders 7 days and 1 day out, logged in `MailLog` so nothing goes twice. Needs `SMTP_URL` + `MAIL_FROM`; without them emails print to the server log locally and sign-up is off on Vercel.
 
 ## Client pages
 
-`/` overview · `/rankings` (FTCScout OPR by season | our scouting) · `/scrimmages` (All scrimmages list; opening one slides in a tab — state in `?open=a,b&s=a`) · `/events` and `/events/[season]/[code]` · `/team/[number]` (competition history, Watch buttons) · `/clips` (Video: paste YouTube link → clips) · `/scout` (data entry).
+`/` overview · `/rankings` (FTCScout OPR by season | our scouting) · `/scrimmages` (All scrimmages list; opening one slides in a tab — state in `?open=a,b&s=a`) · `/events` and `/events/[season]/[code]` · `/team/[number]` (competition history, Watch buttons) · `/clips` (Video: paste YouTube link → clips) · `/scout` (data entry) · `/about` · `/privacy` · `/updates` (email sign-up, plus `/updates/confirm` and `/updates/unsubscribe`, which act on a button press so email link scanners can't trigger them) · `/admin` (team, invites, email updates).
+
+Copy style: write like a person. No em dashes in UI text, no hype; short plain sentences. Public pages never show internal status (sheet sync, API host); scouts see a small "Synced …" note next to Sync now.
 
 Shared UI: `components/ui.tsx` (tiles, tables, toast), `components/ftc.tsx` (MatchList with Watch buttons, AwardList, SeasonChips), `components/ClipPlayer.tsx` (pop-up player), `lib/youtube.ts` (IFrame API loader), `lib/api.ts` (types + fetch helpers), `lib/format.ts`.
 

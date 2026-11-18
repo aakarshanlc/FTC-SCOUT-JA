@@ -310,3 +310,36 @@ sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export const User = model("User", userSchema);
 export const Session = model("Session", sessionSchema);
+
+// ───────── Email updates ─────────
+
+// People who asked for event emails. `token` (random, in every email link)
+// confirms the address and unsubscribes it; unsubscribing deletes the row.
+const subscriberSchema = new Schema(
+  {
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    token: { type: String, required: true, unique: true },
+    confirmedAt: { type: Date, default: null },
+    confirmSentAt: { type: Date, default: null },
+    // Set while unconfirmed; MongoDB deletes the sign-up when it passes. Cleared on confirm.
+    expiresAt: { type: Date, default: null },
+  },
+  { timestamps: true },
+);
+subscriberSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+// One row per email sent to the list, so reminders never go out twice.
+const mailLogSchema = new Schema(
+  {
+    key: { type: String, required: true, unique: true }, // "reminder:<event>:7d" or "update:<id>"
+    kind: { type: String, enum: ["reminder", "update"], required: true },
+    subject: String,
+    sent: { type: Number, default: 0 },
+    failed: { type: Number, default: 0 },
+    by: { type: { id: String, name: String }, default: null, _id: false },
+  },
+  { timestamps: true },
+);
+
+export const Subscriber = model("Subscriber", subscriberSchema);
+export const MailLog = model("MailLog", mailLogSchema);

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   // served from pages/api. Trace files from the repo root so the deployment
   // includes it, and leave Node-only libraries unbundled.
   outputFileTracingRoot: path.join(__dirname, ".."),
-  serverExternalPackages: ["ftc-scout-server", "mongoose", "express", "cors", "morgan", "papaparse"],
+  serverExternalPackages: ["ftc-scout-server", "mongoose", "express", "cors", "morgan", "papaparse", "nodemailer"],
   async rewrites() {
     return [{ source: "/events.ics", destination: "/api/events.ics" }];
   },

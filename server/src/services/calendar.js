@@ -130,8 +130,12 @@ export function icsFor(events) {
     "PRODID:-//FTC Scout//Events//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:FTC Scout Events",
+    "X-WR-CALNAME:FTC Jamaica Events",
+    "X-WR-CALDESC:Events and scrimmages for FTC teams in Jamaica",
     "X-WR-TIMEZONE:America/Jamaica",
+    // Ask calendar apps to check for changes every 6 hours.
+    "REFRESH-INTERVAL;VALUE=DURATION:PT6H",
+    "X-PUBLISHED-TTL:PT6H",
   ];
   for (const e of events) {
     if (!e.start) continue;

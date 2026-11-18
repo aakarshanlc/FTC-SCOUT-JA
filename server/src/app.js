@@ -11,6 +11,8 @@ import { ftc } from "./routes/ftc.js";
 import { clips } from "./routes/clips.js";
 import { scrimmages } from "./routes/scrimmages.js";
 import { auth } from "./routes/auth.js";
+import { updates } from "./routes/updates.js";
+import { sendEventReminders } from "./services/updates.js";
 import { loadUser } from "./services/auth.js";
 import { allEvents, icsFor } from "./services/calendar.js";
 import { syncAll } from "./services/sync.js";
@@ -40,11 +42,18 @@ app.get(
     const secret = process.env.CRON_SECRET;
     if (secret && req.get("authorization") !== `Bearer ${secret}`) throw new HttpError(401, "Unauthorized");
     const result = await syncAll({ force: true });
-    res.json(Object.fromEntries(Object.entries(result).map(([k, v]) => [k, v ? { ok: v.ok, message: v.message } : null])));
+    const out = Object.fromEntries(Object.entries(result).map(([k, v]) => [k, v ? { ok: v.ok, message: v.message } : null]));
+    try {
+      out.email = await sendEventReminders(req);
+    } catch (err) {
+      out.email = { error: err.message };
+    }
+    res.json(out);
   }),
 );
 
 app.use("/api/auth", auth);
+app.use("/api/updates", updates);
 app.use("/api/ftc", ftc);
 app.use("/api/clips", clips);
 app.use("/api/scrims", scrimmages);

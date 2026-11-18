@@ -33,8 +33,8 @@ export default function RankingsPage() {
         title="Rankings"
         sub={
           mode === "ftc"
-            ? "Official results from FTCScout: teams ranked by season OPR, the points a team adds to its alliance per match."
-            : "Ranked by your own scouting: the average match total logged in the sheet or on the Scout page."
+            ? "Official results from FTCScout, ranked by OPR (roughly how many points a team adds to its alliance each match)."
+            : "Ranked by our own scouting, using each team's average match score."
         }
       />
       <div className="toolbar">

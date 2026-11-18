@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
-import { API_URL, post, type Overview } from "@/lib/api";
+import { post, type Overview } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
   daysUntil,
@@ -28,7 +28,6 @@ import {
   IconArrowRight,
   IconCalendar,
   IconRefresh,
-  IconSheet,
 } from "@/components/icons";
 
 export function OverviewView() {
@@ -70,7 +69,7 @@ export function OverviewView() {
             Scouting <span style={{ color: "var(--signal)" }}>HQ</span>
           </>
         }
-        sub="Live standings, scrimmage reports and the event calendar for Jamaican FTC teams — pulled from your scouting sheet and FTCScout into one database."
+        sub="Rankings, scrimmage reports, match video and upcoming events for FTC teams in Jamaica."
       >
         {user ? (
           <>
@@ -89,6 +88,9 @@ export function OverviewView() {
               />
               {syncing ? "Syncing…" : "Sync now"}
             </button>
+            <span className="muted sync-note" title={data?.sync.sheet && !data.sync.sheet.ok ? data.sync.sheet.message : undefined}>
+              {data?.sync.sheet && !data.sync.sheet.ok ? "Last sync failed" : `Synced ${timeAgo(data?.sync.sheet?.createdAt)}`}
+            </span>
             <Link href="/scout" className="btn primary">
               Log a match
             </Link>
@@ -307,23 +309,6 @@ export function OverviewView() {
         )}
       </section>
 
-      <footer className="foot">
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <IconSheet style={{ width: 14, height: 14 }} />
-          Sheet sync {timeAgo(data?.sync.sheet?.createdAt)}
-          {data?.sync.sheet && !data.sync.sheet.ok
-            ? ` — ${data.sync.sheet.message}`
-            : ""}
-          <span
-            className={`statusdot${data?.sync.sheet && !data.sync.sheet.ok ? " bad" : ""}`}
-          />
-        </span>
-        <span>
-          FTCScout {timeAgo(data?.sync.ftcscout?.createdAt)} · API{" "}
-          {API_URL ? API_URL.replace(/^https?:\/\//, "") : "built in"} ·
-          refreshes every 30s
-        </span>
-      </footer>
       {toast.node}
     </>
   );
