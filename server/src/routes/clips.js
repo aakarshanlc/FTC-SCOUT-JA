@@ -16,7 +16,9 @@ const LEAD = 10; // show the countdown
 /** Clips for every match of the recording's event that falls inside the video. */
 export async function clipsFor(rec) {
   const start = rec.videoStart.getTime();
-  const end = start + (rec.lengthSeconds ?? 24 * 3600) * 1000;
+  // Unknown length (oEmbed doesn't say): assume one competition day, so a
+  // day-1 stream doesn't pick up the next morning's matches.
+  const end = start + (rec.lengthSeconds ?? 14 * 3600) * 1000;
   const matches = await FtcMatch.find({
     season: rec.season,
     eventCode: rec.eventCode,
