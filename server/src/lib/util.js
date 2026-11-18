@@ -31,8 +31,10 @@ export const slug = (s) =>
 export const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 export class HttpError extends Error {
-  constructor(status, message) {
+  /** `code` is a machine-readable reason the client can act on. */
+  constructor(status, message, code) {
     super(message);
     this.status = status;
+    if (code) this.code = code;
   }
 }

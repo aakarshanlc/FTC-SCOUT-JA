@@ -8,12 +8,19 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import useSWR, { useSWRConfig } from "swr";
-import { del, patch, post, type Clip, type ClipEvent, type Recording } from "@/lib/api";
+import { ApiError, del, patch, post, type Clip, type ClipEvent, type FtcEventDetail, type Recording } from "@/lib/api";
 import { fmtRange, seasonLabel } from "@/lib/format";
 import { Empty, ErrorNotice, Notice, PageHead, SkeletonRows, useToast } from "@/components/ui";
 import { IconExternal, IconTrash } from "@/components/icons";
 import { PLAYER_DEFAULTS, loadYouTube, ytError, type YTPlayer } from "@/lib/youtube";
 
+
+/** "1:20:55" / "20:55" / "55" → seconds, or null if it isn't a time. */
+const parseTime = (t: string): number | null => {
+  const parts = t.trim().split(":").map((x) => x.trim());
+  if (!parts.length || parts.length > 3 || parts.some((x) => !/^\d+(\.\d+)?$/.test(x))) return null;
+  return parts.reduce((acc, x) => acc * 60 + Number(x), 0);
+};
 
 const hms = (s: number) => {
   const h = Math.floor(s / 3600);
@@ -73,18 +80,34 @@ function AddRecording({ onAdded }: { onAdded: (r: Recording) => void }) {
   const { mutate } = useSWRConfig();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // When YouTube doesn't give a start time, ask for one known match instead.
+  const [needAnchor, setNeedAnchor] = useState(false);
+  const [eventKey, setEventKey] = useState("");
+  const [season, eventCode] = eventKey.split(":");
+  const { data: eventDetail } = useSWR<FtcEventDetail>(needAnchor && eventCode ? `/api/ftc/events/${season}/${eventCode}` : null);
 
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const [season, eventCode] = String(f.get("event")).split(":");
+    const body: Record<string, unknown> = { url: f.get("url"), season: Number(season), eventCode };
+    if (needAnchor) {
+      const at = parseTime(String(f.get("anchorAt") ?? ""));
+      if (at === null) {
+        setErr("Enter the time as h:mm:ss, e.g. 1:20:55");
+        return;
+      }
+      body.anchorMatchId = Number(f.get("anchorMatch"));
+      body.anchorAt = at;
+    }
     setBusy(true);
     setErr(null);
     try {
-      const rec = await post<Recording>("/api/clips/recordings", { url: f.get("url"), season: Number(season), eventCode });
+      const rec = await post<Recording>("/api/clips/recordings", body);
       await mutate("/api/clips/recordings");
+      setNeedAnchor(false);
       onAdded(rec);
     } catch (x) {
+      if (x instanceof ApiError && x.code === "needs_anchor") setNeedAnchor(true);
       setErr(x instanceof Error ? x.message : "Couldn't add that video");
     } finally {
       setBusy(false);
@@ -101,7 +124,18 @@ function AddRecording({ onAdded }: { onAdded: (r: Recording) => void }) {
         </div>
         <div className="field">
           <label htmlFor="event">Event</label>
-          <select id="event" name="event" className="select input" required defaultValue="">
+          <select
+            id="event"
+            name="event"
+            className="select input"
+            required
+            value={eventKey}
+            onChange={(e) => {
+              setEventKey(e.target.value);
+              setNeedAnchor(false);
+              setErr(null);
+            }}
+          >
             <option value="" disabled>
               Choose the event…
             </option>
@@ -117,6 +151,29 @@ function AddRecording({ onAdded }: { onAdded: (r: Recording) => void }) {
             {busy ? "Clipping…" : "Clip into matches"}
           </button>
         </div>
+        {needAnchor ? (
+          <>
+            <div className="field">
+              <label htmlFor="anchorMatch">A match in this video</label>
+              <select id="anchorMatch" name="anchorMatch" className="select input" required defaultValue="">
+                <option value="" disabled>
+                  {eventDetail ? "Choose a match…" : "Loading matches…"}
+                </option>
+                {eventDetail?.matches.map((m) => (
+                  <option key={m.matchId} value={m.matchId}>
+                    {m.label} · {m.red.teams.join("+")} vs {m.blue.teams.join("+")}
+                  </option>
+                ))}
+              </select>
+              <span className="hint">Any match you can find in the video works.</span>
+            </div>
+            <div className="field">
+              <label htmlFor="anchorAt">It starts at (h:mm:ss in the video)</label>
+              <input id="anchorAt" name="anchorAt" className="input num" required placeholder="1:20:55" inputMode="numeric" />
+              <span className="hint">The moment the robots start moving.</span>
+            </div>
+          </>
+        ) : null}
         {err ? (
           <div className="full">
             <Notice kind="error">{err}</Notice>

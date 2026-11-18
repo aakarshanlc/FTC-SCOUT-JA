@@ -154,7 +154,8 @@ clips.post(
     if (!videoStart) {
       throw new HttpError(
         422,
-        "This video wasn't a livestream, so YouTube doesn't say when it started. Tell us where one match begins (match + time in the video) and we'll line up the rest.",
+        "YouTube didn't tell us when this recording started. Pick one match and the time it starts in the video, and we'll line up the rest.",
+        "needs_anchor",
       );
     }
 

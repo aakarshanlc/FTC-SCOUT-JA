@@ -60,5 +60,5 @@ app.use((_req, res) => res.status(404).json({ error: "Not found" }));
 app.use((err, _req, res, _next) => {
   const status = err.status ?? (err.name === "ValidationError" ? 400 : 500);
   if (status >= 500) console.error(err);
-  res.status(status).json({ error: err.message || "Server error" });
+  res.status(status).json({ error: err.message || "Server error", ...(err.code && typeof err.code === "string" && status < 500 ? { code: err.code } : {}) });
 });
