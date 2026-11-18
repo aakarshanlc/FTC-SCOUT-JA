@@ -8,6 +8,13 @@ server/   Express 5 + Mongoose, ESM, `node --watch`                             
 docker-compose.yml   MongoDB 8 (container ftc-scout-mongo, volume ftc-scout-mongo)
 ```
 
+**Production = one Vercel project** (`ftc-scout-jamaica`, root `client/`, https://ftc-scout-jamaica.vercel.app).
+The Express app from `server/` is mounted inside Next at `client/src/pages/api/[[...path]].js`
+(server is linked as the `ftc-scout-server` package; the client's `postinstall` installs its deps).
+`NEXT_PUBLIC_API_URL="/"` there means same-origin. Env on Vercel: `MONGODB_URI` (Atlas, Network Access
+0.0.0.0/0), `FTC_API_USER`, `FTC_API_TOKEN`, optional `YOUTUBE_API_KEY`. Daily cron: `client/vercel.json`.
+Deploys come from the fork `revolverking927/FTC-SCOUT-JA`, branch `video-lab`.
+
 ## Run
 
 ```bash
@@ -26,7 +33,7 @@ Checks: `cd client && npx tsc --noEmit && npx next build`. There are no automate
 | Google Sheet (gviz CSV) | `server/src/services/sheet.js`, `sync.js` | Teams, Robot, Matches, Scrimmages, Events tabs. Rows are replaced on each sync; app entries (`source: "manual"`) are never touched. |
 | FTCScout GraphQL | `services/ftcscout.js`, `ftcImport.js` | Region teams; per-season OPR/world rank (`TeamSeason`), event results + awards (`Participation`), matches with a Jamaican team (`FtcMatch`). Past seasons import once; recent seasons every 10 min. |
 | FIRST FTC Events API | `services/firstImport.js` | Optional (`FTC_API_USER`/`FTC_API_TOKEN`). Official awards, alliance selections, Worlds advancement, robot names, sponsors, venues (`FirstEvent`). Every 15 min. Their website must **not** be scraped — API only, and keep the footer credit link. |
-| YouTube (watch page metadata only) | `services/youtube.js`, `routes/clips.js` | Match video. A `Recording` = video ID + event + wall-clock start; clips are computed start/end positions. **Never download videos.** |
+| YouTube (metadata only) | `services/youtube.js`, `routes/clips.js` | Match video. A `Recording` = video ID + event + wall-clock start; clips are computed start/end positions. **Never download videos.** Start time comes from the YouTube Data API (`YOUTUBE_API_KEY`), else the watch page (blocked from Vercel's IPs — don't work around the bot check), else oEmbed + one known match start ("anchor"). |
 
 Rules that matter:
 - **Jamaica only.** FTCScout's JM region and FIRST event lists include foreign teams; team lists keep only `country === "Jamaica"`. Visiting teams still appear on event pages. Scrimmages held abroad show under "Jamaican teams abroad".
@@ -52,5 +59,6 @@ Shared UI: `components/ui.tsx` (tiles, tables, toast), `components/ftc.tsx` (Mat
 - **Cache Components is enabled.** Client components using `useParams`/`usePathname`/`useSearchParams` must be under `<Suspense>` or `next build` fails (`CLIENT_HOOK_DYNAMIC`). Pattern: `page.tsx` (server) wraps a `*-view.tsx` client component in Suspense.
 - **Stale CSS / hydration mismatches in dev** after editing `globals.css` or the nav: stop the client dev server and `rm -rf client/.next` — a plain restart may keep serving the old chunk.
 - The server restarts on every save (`node --watch`); retry API calls made right after edits.
+- Adding the `pages/` dir widened Next's hook types: `useParams()/useSearchParams()/usePathname()` are typed nullable — use `!` (they're never null in the App Router).
 - Design tokens live at the top of `client/src/app/globals.css` (light + `[data-theme="dark"]`); fonts are Barlow Condensed (display), Inter (body), JetBrains Mono (numbers) via `--ff-*` variables.
 - Never commit `server/.env` (FIRST API token) or `client/.env.local`; `.env.example` files are committed.
