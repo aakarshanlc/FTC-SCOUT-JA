@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import { FtcMatch, Recording, Team } from "../models/index.js";
 import { HttpError, ah } from "../lib/util.js";
 import { videoInfo, youtubeId } from "../services/youtube.js";
+import { requireUser, stamp } from "../services/auth.js";
 
 export const clips = Router();
 
@@ -127,6 +128,7 @@ clips.get(
  */
 clips.post(
   "/recordings",
+  requireUser,
   ah(async (req, res) => {
     const videoId = youtubeId(req.body.url);
     if (!videoId) throw new HttpError(400, "That doesn't look like a YouTube link");
@@ -164,7 +166,7 @@ clips.post(
     const doc = await Recording.findOneAndUpdate(
       { videoId, season, eventCode },
       {
-        $set: { title: info.title, channel: info.channel, lengthSeconds: info.lengthSeconds, videoStart, source, shift: 0, calibrated: source === "manual" },
+        $set: { title: info.title, channel: info.channel, lengthSeconds: info.lengthSeconds, videoStart, source, shift: 0, calibrated: source === "manual", createdBy: stamp(req.user) },
       },
       { upsert: true, new: true },
     ).lean();
@@ -180,6 +182,7 @@ clips.post(
 /** Fine-tune: { shift } seconds, or { matchId, at } = "this match really starts at `at`". */
 clips.patch(
   "/recordings/:id",
+  requireUser,
   ah(async (req, res) => {
     const rec = await Recording.findById(recId(req.params.id));
     if (!rec) throw new HttpError(404, "Recording not found");
@@ -199,6 +202,7 @@ clips.patch(
 
 clips.delete(
   "/recordings/:id",
+  requireUser,
   ah(async (req, res) => {
     await Recording.deleteOne({ _id: recId(req.params.id) });
     res.status(204).end();

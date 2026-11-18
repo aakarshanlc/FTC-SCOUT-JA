@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { API_URL, post, type Overview } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { daysUntil, fmt, fmtRange, meaningful, record, seasonLabel, timeAgo } from "@/lib/format";
 import { Empty, ErrorNotice, PageHead, Rank, SkeletonRows, Tile, useToast } from "@/components/ui";
 import { IconArrowRight, IconCalendar, IconRefresh, IconSheet } from "@/components/icons";
@@ -17,6 +18,7 @@ export function OverviewView() {
   const next = data?.nextEvents.find((e) => e.start);
   const days = daysUntil(next?.start ?? null);
 
+  const { user } = useAuth();
   const syncNow = async () => {
     setSyncing(true);
     try {
@@ -41,13 +43,17 @@ export function OverviewView() {
         }
         sub="Live standings, scrimmage reports and the event calendar for Jamaican FTC teams — pulled from your scouting sheet and FTCScout into one database."
       >
-        <button type="button" className="btn" onClick={syncNow} disabled={syncing}>
-          <IconRefresh style={syncing ? { animation: "spin 0.9s linear infinite" } : undefined} />
-          {syncing ? "Syncing…" : "Sync now"}
-        </button>
-        <Link href="/scout" className="btn primary">
-          Log a match
-        </Link>
+        {user ? (
+          <>
+            <button type="button" className="btn" onClick={syncNow} disabled={syncing}>
+              <IconRefresh style={syncing ? { animation: "spin 0.9s linear infinite" } : undefined} />
+              {syncing ? "Syncing…" : "Sync now"}
+            </button>
+            <Link href="/scout" className="btn primary">
+              Log a match
+            </Link>
+          </>
+        ) : null}
       </PageHead>
 
       <ErrorNotice error={error} />

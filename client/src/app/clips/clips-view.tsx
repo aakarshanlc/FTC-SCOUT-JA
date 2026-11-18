@@ -13,6 +13,7 @@ import { fmtRange, seasonLabel } from "@/lib/format";
 import { Empty, ErrorNotice, Notice, PageHead, SkeletonRows, useToast } from "@/components/ui";
 import { IconExternal, IconTrash } from "@/components/icons";
 import { PLAYER_DEFAULTS, loadYouTube, ytError, type YTPlayer } from "@/lib/youtube";
+import { useAuth } from "@/lib/auth";
 
 
 /** "1:20:55" / "20:55" / "55" → seconds, or null if it isn't a time. */
@@ -30,6 +31,7 @@ const hms = (s: number) => {
 };
 
 export function ClipsView() {
+  const { user } = useAuth();
   const params = useSearchParams()!;
   const router = useRouter();
   const pathname = usePathname()!;
@@ -52,7 +54,16 @@ export function ClipsView() {
         sub="Paste a YouTube recording of an event. Every match in it becomes its own clip you can play right here — nothing is downloaded."
       />
       <ErrorNotice error={error} />
-      <AddRecording onAdded={(r) => select(r._id)} />
+      {user ? (
+        <AddRecording onAdded={(r) => select(r._id)} />
+      ) : (
+        <div className="card signin-prompt">
+          <span className="muted">Scouts can add event recordings and line them up.</span>
+          <Link className="btn sm" href="/login?next=/clips">
+            Sign in
+          </Link>
+        </div>
+      )}
       {recordings?.length ? (
         <div className="chips" style={{ margin: "18px 0 14px" }} role="group" aria-label="Recording">
           {recordings.map((r) => (
@@ -197,6 +208,7 @@ function RecordingView({
   onPick: (matchId: number) => void;
   onDeleted: () => void;
 }) {
+  const { user } = useAuth();
   const key = `/api/clips/recordings/${id}`;
   const { data: rec, error, mutate } = useSWR<Recording>(key, { refreshInterval: 0 });
   const { mutate: mutateAll } = useSWRConfig();
@@ -290,9 +302,11 @@ function RecordingView({
               <span className="muted">vs</span>
               <Alliance side="blue" a={current.blue} names={names} />
               <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexWrap: "wrap" }}>
-                <button type="button" className="btn sm" onClick={startsNow} title="Pause where the match starts, then click to line up every clip">
-                  Match starts here
-                </button>
+                {user ? (
+                  <button type="button" className="btn sm" onClick={startsNow} title="Pause where the match starts, then click to line up every clip">
+                    Match starts here
+                  </button>
+                ) : null}
                 <a className="btn sm ghost" href={current.url} target="_blank" rel="noreferrer">
                   YouTube <IconExternal />
                 </a>
@@ -314,7 +328,7 @@ function RecordingView({
         </div>
       </section>
 
-      {rec && !rec.calibrated ? (
+      {rec && !rec.calibrated && user ? (
         <div style={{ marginTop: 12 }}>
           <Notice>
             <span>
@@ -339,9 +353,11 @@ function RecordingView({
             <Link className="btn sm ghost" href={rec ? `/events/${rec.season}/${rec.eventCode}` : "#"}>
               Event
             </Link>
+            {user ? (
             <button type="button" className="btn sm ghost" onClick={remove} aria-label="Remove recording">
               <IconTrash />
             </button>
+            ) : null}
           </div>
         </div>
         {!rec ? (

@@ -6,10 +6,12 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { post, type ChampRow } from "@/lib/api";
 import { Notice, PageHead } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 
 type Kind = "match" | "scrimmage" | "event";
 
 export function ScoutForms() {
+  const { user, loading } = useAuth();
   const params = useSearchParams()!;
   const [kind, setKind] = useState<Kind>("match");
   const { data: teams = [] } = useSWR<ChampRow[]>("/api/teams");
@@ -23,6 +25,22 @@ export function ScoutForms() {
         title="Scout"
         sub="Entries saved here go straight into the database and show up everywhere instantly. Rows from the Google Sheet stay managed in the sheet."
       />
+      {!user ? (
+        loading ? null : (
+          <div className="card" style={{ maxWidth: 760 }}>
+            <div className="empty">
+              <strong>Sign in to log data</strong>
+              Only invited scouts can add matches, scrimmage reports and events.
+              <div style={{ marginTop: 14 }}>
+                <Link className="btn primary" href="/login?next=/scout">
+                  Sign in
+                </Link>
+              </div>
+            </div>
+          </div>
+        )
+      ) : (
+        <>
       <div className="seg" role="group" aria-label="What to log" style={{ marginBottom: 16 }}>
         <button type="button" aria-pressed={kind === "match"} onClick={() => setKind("match")}>
           Match
@@ -57,6 +75,8 @@ export function ScoutForms() {
           )}
         </div>
       </div>
+        </>
+      )}
     </>
   );
 }

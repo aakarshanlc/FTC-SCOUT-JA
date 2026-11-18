@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { fetcher, type SearchHit } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import {
   IconCalendar,
   IconHome,
@@ -56,6 +57,7 @@ export function HeaderShell({ path }: { path: string }) {
           <div className="topbar-right">
             <Search />
             <ThemeToggle />
+            <Account />
           </div>
         </div>
       </header>
@@ -209,3 +211,66 @@ const isTyping = (e: KeyboardEvent) => {
   const t = e.target as HTMLElement | null;
   return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
 };
+
+/** "Sign in" when signed out; initials + menu when signed in. */
+function Account() {
+  const { user, isAdmin, signOut } = useAuth();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, []);
+
+  if (!user) {
+    return (
+      <Link href="/login" className="btn sm" style={{ height: 38 }}>
+        Sign in
+      </Link>
+    );
+  }
+  const initials = user.name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <div className="acct" ref={box}>
+      <button type="button" className="acct-btn" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" aria-label={`Account: ${user.name}`}>
+        <span className="acct-av">{initials}</span>
+        <span className="acct-name">{user.name.split(" ")[0]}</span>
+      </button>
+      {open ? (
+        <div className="acct-menu" role="menu">
+          <div className="who">
+            <div style={{ fontWeight: 700 }}>{user.name}</div>
+            <div className="muted" style={{ fontSize: 12.5 }}>
+              {user.email} · {isAdmin ? "Admin" : "Scout"}
+            </div>
+          </div>
+          <Link href="/scout" role="menuitem" onClick={() => setOpen(false)}>
+            Log a match
+          </Link>
+          <Link href="/admin" role="menuitem" onClick={() => setOpen(false)}>
+            {isAdmin ? "Team & invites" : "Account"}
+          </Link>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={async () => {
+              setOpen(false);
+              await signOut();
+              router.refresh();
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}

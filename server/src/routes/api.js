@@ -8,6 +8,7 @@ import { eventMatches } from "../services/ftcscout.js";
 import { syncAll } from "../services/sync.js";
 import { dbState } from "../db.js";
 import { config } from "../config.js";
+import { requireUser, stamp } from "../services/auth.js";
 import { ftcRankings, ftcSeasons } from "./ftc.js";
 
 export const api = Router();
@@ -89,6 +90,7 @@ api.get(
 
 api.post(
   "/teams",
+  requireUser,
   ah(async (req, res) => {
     const number = teamNumber(req.body.number);
     if (await Team.exists({ number })) throw new HttpError(409, `Team ${number} already exists`);
@@ -135,6 +137,7 @@ api.get(
 
 api.post(
   "/matches",
+  requireUser,
   ah(async (req, res) => {
     const team = teamNumber(req.body.team);
     const auto = numOrNull(req.body.auto);
@@ -151,6 +154,7 @@ api.post(
       total,
       notes: str(req.body.notes, 1000),
       source: "manual",
+      createdBy: stamp(req.user),
     });
     res.status(201).json(doc);
   }),
@@ -158,6 +162,7 @@ api.post(
 
 api.delete(
   "/matches/:id",
+  requireUser,
   ah(async (req, res) => {
     const doc = await Match.findById(objectId(req.params.id));
     if (!doc) throw new HttpError(404, "Match not found");
@@ -180,6 +185,7 @@ api.get(
 
 api.post(
   "/scrimmages",
+  requireUser,
   ah(async (req, res) => {
     const event = str(req.body.event, 120);
     if (!event) throw new HttpError(400, "Scrimmage name is required");
@@ -201,6 +207,7 @@ api.post(
       total,
       observations,
       source: "manual",
+      createdBy: stamp(req.user),
     });
     res.status(201).json(doc);
   }),
@@ -208,6 +215,7 @@ api.post(
 
 api.delete(
   "/scrimmages/:id",
+  requireUser,
   ah(async (req, res) => {
     const doc = await Scrimmage.findById(objectId(req.params.id));
     if (!doc) throw new HttpError(404, "Entry not found");
@@ -228,6 +236,7 @@ api.get(
 
 api.post(
   "/events",
+  requireUser,
   ah(async (req, res) => {
     const name = str(req.body.name, 120);
     const start = str(req.body.start, 10);
@@ -244,6 +253,7 @@ api.post(
       location: str(req.body.location),
       website: str(req.body.website, 500) || null,
       origin: "manual",
+      createdBy: stamp(req.user),
     });
     res.status(201).json(doc);
   }),
@@ -251,6 +261,7 @@ api.post(
 
 api.delete(
   "/events/:id",
+  requireUser,
   ah(async (req, res) => {
     const doc = await Event.findById(objectId(req.params.id));
     if (!doc) throw new HttpError(404, "Event not found");
@@ -283,6 +294,7 @@ api.get(
 
 api.post(
   "/sync",
+  requireUser,
   ah(async (req, res) => {
     res.json(await syncAll({ full: req.query.full === "1", force: true }));
   }),

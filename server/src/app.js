@@ -10,13 +10,16 @@ import { api } from "./routes/api.js";
 import { ftc } from "./routes/ftc.js";
 import { clips } from "./routes/clips.js";
 import { scrimmages } from "./routes/scrimmages.js";
+import { auth } from "./routes/auth.js";
+import { loadUser } from "./services/auth.js";
 import { allEvents, icsFor } from "./services/calendar.js";
 import { syncAll } from "./services/sync.js";
 import { HttpError, ah } from "./lib/util.js";
 
 export const app = express();
 app.disable("x-powered-by");
-app.use(cors({ origin: config.clientOrigin }));
+// credentials: the sign-in cookie must travel with API calls (local dev uses two ports)
+app.use(cors({ origin: config.clientOrigin, credentials: true }));
 app.use(express.json({ limit: "100kb" }));
 app.use(morgan(process.env.VERCEL ? "tiny" : "dev"));
 
@@ -25,6 +28,7 @@ app.use(ah(async (_req, _res, next) => {
   await connectDb();
   next();
 }));
+app.use(loadUser); // sets req.user from the session cookie
 
 app.get("/", (_req, res) => res.json({ name: "ftc-scout-server", api: "/api", calendar: "/events.ics" }));
 
@@ -40,6 +44,7 @@ app.get(
   }),
 );
 
+app.use("/api/auth", auth);
 app.use("/api/ftc", ftc);
 app.use("/api/clips", clips);
 app.use("/api/scrims", scrimmages);

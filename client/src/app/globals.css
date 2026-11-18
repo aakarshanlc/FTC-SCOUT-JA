@@ -1611,3 +1611,30 @@ table.data {
     display: none;
   }
 }
+
+/* sign-in, setup and invite pages */
+.auth-wrap { display: grid; place-items: center; padding: 40px 0 24px; }
+.auth-card { width: min(440px, 100%); padding: 26px 22px; display: flex; flex-direction: column; gap: 14px; }
+.auth-card h1 { margin: 0; font-size: 44px; }
+.auth-card p { margin: 0; }
+.auth-card > .btn { height: 44px; }
+.auth-foot { font-size: 13px; text-align: center; }
+.auth-foot a, .auth-card .notice a { color: var(--signal); font-weight: 600; }
+
+/* team page invite link */
+.invite-link { padding: 14px; border-radius: var(--radius-sm); background: var(--signal-soft); border: 1px solid color-mix(in srgb, var(--signal) 30%, transparent); }
+
+/* header account button + menu */
+.acct { position: relative; }
+.acct-btn { height: 38px; padding: 0 12px 0 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 13.5px; }
+.acct-btn:hover { border-color: var(--line-strong); }
+.acct-av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--paper); font-family: var(--ff-display), sans-serif; font-size: 14px; }
+.acct-name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .acct-name { display: none; } .acct-btn { padding: 0 4px; } }
+.acct-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 230px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 50; }
+.acct-menu .who { padding: 8px 10px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.acct-menu a, .acct-menu button { display: block; width: 100%; text-align: left; padding: 9px 10px; border-radius: 9px; border: 0; background: none; font-size: 14px; cursor: pointer; color: var(--ink); }
+.acct-menu a:hover, .acct-menu button:hover { background: var(--surface-2); }
+
+/* "signed in to edit" prompt */
+.signin-prompt { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 16px; }

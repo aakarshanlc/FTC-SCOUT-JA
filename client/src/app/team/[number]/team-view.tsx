@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
-import { ApiError, del, type MatchDoc, type ScrimDoc, type TeamDetail } from "@/lib/api";
+import { ApiError, del, type CreatedBy, type MatchDoc, type ScrimDoc, type TeamDetail } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { fmt, meaningful } from "@/lib/format";
 import { Empty, ErrorNotice, SkeletonRows, Tile, useToast } from "@/components/ui";
 import { IconArrowLeft, IconExternal, IconPlus, IconTrash } from "@/components/icons";
 import { FtcHistory } from "./ftc-history";
 
 export function TeamView() {
+  const { user } = useAuth();
   const { number } = useParams<{ number: string }>()!;
   const key = `/api/teams/${encodeURIComponent(number)}`;
   const { data, error, isLoading } = useSWR<TeamDetail>(key);
@@ -97,9 +99,11 @@ export function TeamView() {
             </div>
           ) : null}
         </div>
-        <Link href={`/scout?team=${number}`} className="btn primary">
-          <IconPlus /> Log match
-        </Link>
+        {user ? (
+          <Link href={`/scout?team=${number}`} className="btn primary">
+            <IconPlus /> Log match
+          </Link>
+        ) : null}
       </section>
 
       <FtcHistory number={number} />
@@ -258,11 +262,14 @@ function PitNotes({ scrims }: { scrims: ScrimDoc[] }) {
   );
 }
 
-const SourceBadge = ({ source }: { source: "sheet" | "manual" }) => (
-  <span className={`badge ${source === "manual" ? "good" : ""}`}>{source === "manual" ? "App" : "Sheet"}</span>
+const SourceBadge = ({ source, by }: { source: "sheet" | "manual"; by?: CreatedBy | null }) => (
+  <span className={`badge ${source === "manual" ? "good" : ""}`} title={by ? `Added by ${by.name}` : undefined} style={{ textTransform: "none", letterSpacing: 0 }}>
+    {source === "manual" ? (by ? `App · ${by.name}` : "App") : "Sheet"}
+  </span>
 );
 
 function MatchTable({ rows, onDelete }: { rows: MatchDoc[]; onDelete: (id: string) => void }) {
+  const { user } = useAuth();
   if (!rows.length) return <Empty title="No matches logged" />;
   return (
     <div className="tablewrap">
@@ -293,10 +300,10 @@ function MatchTable({ rows, onDelete }: { rows: MatchDoc[]; onDelete: (id: strin
                 {m.notes || "—"}
               </td>
               <td>
-                <SourceBadge source={m.source} />
+                <SourceBadge source={m.source} by={m.createdBy} />
               </td>
               <td className="r">
-                {m.source === "manual" ? (
+                {m.source === "manual" && user ? (
                   <button type="button" className="btn sm ghost" onClick={() => onDelete(m._id)} aria-label="Delete match">
                     <IconTrash />
                   </button>
@@ -311,6 +318,7 @@ function MatchTable({ rows, onDelete }: { rows: MatchDoc[]; onDelete: (id: strin
 }
 
 function ScrimTable({ rows, onDelete }: { rows: ScrimDoc[]; onDelete: (id: string) => void }) {
+  const { user } = useAuth();
   if (!rows.length) return <Empty title="No scrimmage reports" />;
   return (
     <div className="tablewrap">
@@ -352,10 +360,10 @@ function ScrimTable({ rows, onDelete }: { rows: ScrimDoc[]; onDelete: (id: strin
                   {fmt(s.total)}
                 </td>
                 <td>
-                  <SourceBadge source={s.source} />
+                  <SourceBadge source={s.source} by={s.createdBy} />
                 </td>
                 <td className="r">
-                  {s.source === "manual" ? (
+                  {s.source === "manual" && user ? (
                     <button type="button" className="btn sm ghost" onClick={() => onDelete(s._id)} aria-label="Delete entry">
                       <IconTrash />
                     </button>

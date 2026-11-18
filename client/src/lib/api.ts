@@ -45,6 +45,7 @@ export interface MatchDoc {
   total: number | null;
   notes: string;
   source: "sheet" | "manual";
+  createdBy?: CreatedBy | null;
   createdAt: string;
 }
 
@@ -59,6 +60,7 @@ export interface ScrimDoc {
   total: number | null;
   observations: Record<string, string>;
   source: "sheet" | "manual";
+  createdBy?: CreatedBy | null;
   createdAt: string;
 }
 
@@ -159,6 +161,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     res = await fetch(`${API_URL}${path}`, {
       ...init,
+      credentials: "include", // send the sign-in cookie (also across local dev ports)
       headers: { "Content-Type": "application/json", ...init?.headers },
     });
   } catch {
@@ -383,8 +386,34 @@ export interface ClipEvent {
 }
 
 export const patch = <T,>(path: string, data?: unknown) =>
-  fetch(`${API_URL}${path}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data ?? {}) }).then(async (r) => {
+  fetch(`${API_URL}${path}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data ?? {}) }).then(async (r) => {
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new ApiError(r.status, body.error || `Request failed (${r.status})`);
     return body as T;
   });
+
+// ───────── Accounts ─────────
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "scout";
+  active: boolean;
+  pending: boolean; // invited, hasn't set a password yet
+  lastLoginAt: string | null;
+  createdAt: string | null;
+  inviteExpires?: string | null;
+}
+
+export interface AuthState {
+  user: AuthUser | null;
+  setupNeeded: boolean;
+  setupEnabled: boolean;
+}
+
+/** Who added an app entry. */
+export interface CreatedBy {
+  id: string;
+  name: string;
+}

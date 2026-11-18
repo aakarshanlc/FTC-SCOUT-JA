@@ -43,6 +43,7 @@ const matchSchema = new Schema(
     total: { type: Number, default: null },
     notes: { type: String, default: "" },
     source,
+    createdBy: { type: new Schema({ id: String, name: String }, { _id: false }), default: null },
   },
   { timestamps: true },
 );
@@ -59,6 +60,7 @@ const scrimmageSchema = new Schema(
     // Text observations from scouts ("Intake & Shooter", "N/A", …) keyed by column
     observations: { type: Map, of: String, default: {} },
     source,
+    createdBy: { type: new Schema({ id: String, name: String }, { _id: false }), default: null },
   },
   { timestamps: true },
 );
@@ -80,6 +82,7 @@ const eventSchema = new Schema(
     finished: { type: Boolean, default: false },
     ongoing: { type: Boolean, default: false },
     hasMatches: { type: Boolean, default: false },
+    createdBy: { type: new Schema({ id: String, name: String }, { _id: false }), default: null },
   },
   { timestamps: true },
 );
@@ -262,6 +265,7 @@ const recordingSchema = new Schema(
     shift: { type: Number, default: 0 },
     calibrated: { type: Boolean, default: false }, // fine-tuned against a real match
     source: { type: String, enum: ["youtube-live", "manual"], default: "youtube-live" },
+    createdBy: { type: new Schema({ id: String, name: String }, { _id: false }), default: null },
   },
   { timestamps: true },
 );
@@ -269,3 +273,40 @@ recordingSchema.index({ season: 1, eventCode: 1 });
 recordingSchema.index({ videoId: 1, season: 1, eventCode: 1 }, { unique: true });
 
 export const Recording = model("Recording", recordingSchema);
+
+// ───────── Accounts: invite-only scouts and admins ─────────
+
+const userSchema = new Schema(
+  {
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    name: { type: String, required: true, trim: true },
+    role: { type: String, enum: ["admin", "scout"], default: "scout" },
+    // scrypt "salt:hash" (hex); empty until an invited scout sets a password
+    passwordHash: { type: String, default: "" },
+    active: { type: Boolean, default: true },
+    // Invite link: only a hash of the token is stored
+    inviteTokenHash: { type: String, default: null, index: true },
+    inviteExpires: { type: Date, default: null },
+    invitedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    // Brute-force guard
+    failedLogins: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
+    lastLoginAt: { type: Date, default: null },
+  },
+  { timestamps: true },
+);
+
+const sessionSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    tokenHash: { type: String, required: true, unique: true },
+    expiresAt: { type: Date, required: true },
+    userAgent: { type: String, default: "" },
+  },
+  { timestamps: true },
+);
+// MongoDB deletes expired sessions automatically
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+export const User = model("User", userSchema);
+export const Session = model("Session", sessionSchema);

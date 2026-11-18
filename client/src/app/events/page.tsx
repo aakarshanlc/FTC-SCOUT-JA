@@ -5,6 +5,7 @@ import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { API_URL, del, fetcher, type CalEvent, type EventMatch } from "@/lib/api";
 import { dateParts, fmtRange, seasonLabel } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
 import { Empty, ErrorNotice, Notice, PageHead, SkeletonRows, useToast } from "@/components/ui";
 import { IconArrowRight, IconCalendar, IconChevron, IconExternal, IconTrash } from "@/components/icons";
 
@@ -61,6 +62,7 @@ export default function EventsPage() {
 }
 
 function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const { mutate } = useSWRConfig();
   const d = dateParts(ev.start);
@@ -127,7 +129,7 @@ function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
               Livestream <IconExternal />
             </a>
           ) : null}
-          {ev._mongoId ? (
+          {ev._mongoId && user ? (
             <button type="button" className="btn sm ghost" onClick={remove} aria-label="Delete event">
               <IconTrash />
             </button>
