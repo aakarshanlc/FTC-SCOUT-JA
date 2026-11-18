@@ -17,3 +17,6 @@ next-env.d.ts
 
 # local mongo data (docker volume is used by default)
 server/data/
+
+# Claude memory (personal notes; see .claude/memory/README.md)
+.claude/memory/

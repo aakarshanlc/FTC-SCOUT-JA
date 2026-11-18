@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postinstall": "npm install --prefix ../server --omit=dev --no-audit --no-fund"
   },
   "dependencies": {
     "next": "16.4.6",
