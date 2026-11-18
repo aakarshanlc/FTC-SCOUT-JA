@@ -4,6 +4,7 @@
 // recording, on top of whatever page you're on.
 
 import Link from "next/link";
+import { eventTitle } from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 import type { FtcMatch, MatchClip } from "@/lib/api";
 import { PLAYER_DEFAULTS, loadYouTube, ytError, type YTPlayer } from "@/lib/youtube";
@@ -76,7 +77,7 @@ export function ClipPlayer({
             {match.label}
           </strong>
           <span className="muted" style={{ fontSize: 13 }}>
-            {match.eventName}
+            {eventTitle(match.eventName)}
           </span>
           {side("red")}
           {side("blue")}

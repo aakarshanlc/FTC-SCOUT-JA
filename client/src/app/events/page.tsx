@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { API_URL, del, fetcher, type CalEvent, type EventMatch } from "@/lib/api";
-import { dateParts, fmtRange, seasonLabel } from "@/lib/format";
+import { dateParts, eventTitle, fmtRange, seasonLabel } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
 import { Empty, ErrorNotice, Notice, PageHead, SkeletonRows, useToast } from "@/components/ui";
 import { IconArrowRight, IconCalendar, IconChevron, IconExternal, IconTrash } from "@/components/icons";
@@ -51,7 +51,7 @@ export default function EventsPage() {
         {isLoading ? (
           <SkeletonRows rows={4} />
         ) : list.length ? (
-          list.map((e) => <EventRow key={e.id} ev={e} onDeleted={() => toast.show("Event removed")} />)
+          list.map((e) => <EventRow key={e.id} ev={e} past={tab === "past"} onDeleted={() => toast.show("Event removed")} />)
         ) : (
           <Empty title={tab === "upcoming" ? "Nothing scheduled" : "No past events yet"} />
         )}
@@ -61,7 +61,7 @@ export default function EventsPage() {
   );
 }
 
-function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
+function EventRow({ ev, past, onDeleted }: { ev: CalEvent; past: boolean; onDeleted: () => void }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const { mutate } = useSWRConfig();
@@ -69,7 +69,7 @@ function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
   const kindClass = ev.kind === "Championship" ? "signal" : ev.kind === "Scrimmage" ? "blue" : "";
 
   const remove = async () => {
-    if (!ev._mongoId || !confirm(`Delete “${ev.name}”?`)) return;
+    if (!ev._mongoId || !confirm(`Delete “${eventTitle(ev.name)}”?`)) return;
     await del(`/api/events/${ev._mongoId}`);
     await mutate("/api/events");
     onDeleted();
@@ -84,7 +84,7 @@ function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
       </div>
       <div style={{ minWidth: 0 }}>
         <div className="ev-title">
-          {ev.name}
+          {eventTitle(ev.name)}
           <span className={`badge ${kindClass}`}>{ev.kind}</span>
           {ev.ongoing ? (
             <span className="badge red live">
@@ -109,7 +109,7 @@ function EventRow({ ev, onDeleted }: { ev: CalEvent; onDeleted: () => void }) {
               Live matches <IconChevron style={{ transform: open ? "rotate(180deg)" : undefined }} />
             </button>
           ) : null}
-          {ev.googleCalendar ? (
+          {ev.googleCalendar && !past ? (
             <a className="btn sm" href={ev.googleCalendar} target="_blank" rel="noreferrer">
               Add to Google Calendar
             </a>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import useSWR from "swr";
 import type { FtcAward, FtcMatch, FtcTeamSeason } from "@/lib/api";
-import { awardName, fmt, fmtRange, ordinal, record, seasonLabel } from "@/lib/format";
+import { awardName, eventTitle, fmt, fmtRange, ordinal, record, seasonLabel } from "@/lib/format";
 import { AwardList, MatchList, SeasonChips } from "@/components/ftc";
 import { Empty, SkeletonRows } from "@/components/ui";
 
@@ -110,7 +110,7 @@ export function FtcHistory({ number }: { number: string }) {
             <Link key={e.eventCode} href={`/events/${e.season}/${e.eventCode}`} className="result-row">
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontWeight: 700, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                  {e.eventName}
+                  {eventTitle(e.eventName)}
                   <span className={`badge ${/Championship/.test(e.eventType) ? "signal" : ""}`}>{eventTypeLabel(e.eventType)}</span>
                   {e.remote ? <span className="badge">Remote</span> : null}
                 </div>

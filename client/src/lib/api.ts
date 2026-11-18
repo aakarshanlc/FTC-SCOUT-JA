@@ -129,6 +129,10 @@ export interface Overview {
     scrimmages: number;
     upcomingEvents: number;
     pastEvents: number;
+    allTeams: number;
+    ftcMatches: number;
+    activeTeams: number;
+    ftcEvents: number;
   };
   topTeams: ChampRow[];
   nextEvents: CalEvent[];

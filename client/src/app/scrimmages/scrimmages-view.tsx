@@ -8,7 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import type { FtcMatch } from "@/lib/api";
-import { dateParts, fmt, fmtRange, meaningful, record, seasonLabel } from "@/lib/format";
+import { dateParts, eventTitle, fmt, fmtRange, meaningful, record, seasonLabel } from "@/lib/format";
 import { MatchList } from "@/components/ftc";
 import { Empty, ErrorNotice, PageHead, Rank, SkeletonRows, Tile } from "@/components/ui";
 import { IconExternal } from "@/components/icons";
@@ -125,7 +125,7 @@ export function ScrimmagesView() {
           return (
             <span key={id} className="stab-wrap" data-on={selected === id}>
               <button type="button" role="tab" className="stab stab-open" aria-selected={selected === id} onClick={() => go(open, id)} title={s?.name}>
-                {s?.name ?? "…"}
+                {s?.name ? eventTitle(s.name) : "…"}
               </button>
               <button type="button" className="stab-x" aria-label={`Close ${s?.name ?? "tab"}`} onClick={() => closeTab(id)}>
                 ×
@@ -173,7 +173,7 @@ function ScrimCard({ s, active, onOpen }: { s: ScrimSummary; active: boolean; on
         <div className="y">{d?.y ?? " "}</div>
       </div>
       <div style={{ minWidth: 0 }}>
-        <div className="scrim-name">{s.name}</div>
+        <div className="scrim-name">{eventTitle(s.name)}</div>
         <div className="muted" style={{ fontSize: 13 }}>
           {s.start ? fmtRange(s.start, s.end) : s.reports ? "Date not set" : "Date TBD"}
           {s.location ? ` · ${s.location}` : ""}
@@ -231,7 +231,7 @@ function ScrimDetailView({ id }: { id: string }) {
             {s.code ? ` · ${s.code}` : ""}
           </div>
           <h2 className="display" style={{ margin: "6px 0 0", fontSize: "clamp(32px, 5vw, 48px)" }}>
-            {s.name}
+            {eventTitle(s.name)}
           </h2>
           <p className="muted" style={{ margin: "6px 0 0" }}>
             {s.start ? fmtRange(s.start, s.end) : "Date not set"}

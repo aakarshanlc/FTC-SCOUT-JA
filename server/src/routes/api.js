@@ -9,6 +9,7 @@ import { syncAll } from "../services/sync.js";
 import { dbState } from "../db.js";
 import { config } from "../config.js";
 import { requireUser, stamp } from "../services/auth.js";
+import { FtcMatch, Participation } from "../models/index.js";
 import { ftcRankings, ftcSeasons } from "./ftc.js";
 
 export const api = Router();
@@ -56,7 +57,13 @@ api.get(
       ftcSeasons(),
     ]);
     const ftcSeason = seasons[0]?.season ?? null;
-    const ftcTop = ftcSeason ? (await ftcRankings(ftcSeason)).slice(0, 5) : [];
+    const [ftcTop, allTeams, ftcMatches, activeTeams, ftcEvents] = await Promise.all([
+      ftcSeason ? ftcRankings(ftcSeason).then((r) => r.slice(0, 5)) : [],
+      Team.countDocuments(),
+      ftcSeason ? FtcMatch.countDocuments({ season: ftcSeason, played: { $ne: false } }) : 0,
+      ftcSeason ? Participation.distinct("team", { season: ftcSeason }).then((t) => t.length) : 0,
+      ftcSeason ? Participation.distinct("eventCode", { season: ftcSeason }).then((e) => e.length) : 0,
+    ]);
     res.json({
       counts: {
         teams: champ.length,
@@ -66,6 +73,10 @@ api.get(
         scrimmages: new Set(scrims.flatMap((s) => s.events)).size,
         upcomingEvents: upcoming.length,
         pastEvents: past.length,
+        allTeams,
+        ftcMatches,
+        activeTeams,
+        ftcEvents,
       },
       topTeams: ranked.slice(0, 5),
       ftc: { season: ftcSeason, top: ftcTop, seasons },
