@@ -14,7 +14,7 @@ type Row = FtcEventDetail["rankings"][number];
 type Tab = "rankings" | "matches" | "alliances" | "awards" | "teams";
 
 export function EventView() {
-  const { season, code } = useParams<{ season: string; code: string }>();
+  const { season, code } = useParams<{ season: string; code: string }>()!;
   const { data, error, isLoading } = useSWR<FtcEventDetail>(`/api/ftc/events/${season}/${code}`, { refreshInterval: 60_000 });
   const [tab, setTab] = useState<Tab>("rankings");
 

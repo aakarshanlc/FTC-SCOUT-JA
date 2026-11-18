@@ -10,7 +10,7 @@ import { Notice, PageHead } from "@/components/ui";
 type Kind = "match" | "scrimmage" | "event";
 
 export function ScoutForms() {
-  const params = useSearchParams();
+  const params = useSearchParams()!;
   const [kind, setKind] = useState<Kind>("match");
   const { data: teams = [] } = useSWR<ChampRow[]>("/api/teams");
   const { data: scrims } = useSWR<{ events: string[] }>("/api/scrimmages");

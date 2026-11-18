@@ -30,7 +30,7 @@ const isActive = (path: string, href: string) =>
   href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
 
 export function Header() {
-  return <HeaderShell path={usePathname()} />;
+  return <HeaderShell path={usePathname() ?? ""} />;
 }
 
 /** Rendered as-is (no active tab) while the pathname is resolving. */

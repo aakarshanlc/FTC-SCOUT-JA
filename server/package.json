@@ -19,5 +19,9 @@
     "mongoose": "^9.12.2",
     "morgan": "^1.12.1",
     "papaparse": "^5.7.1"
+  },
+  "exports": {
+    "./app": "./src/app.js",
+    "./package.json": "./package.json"
   }
 }

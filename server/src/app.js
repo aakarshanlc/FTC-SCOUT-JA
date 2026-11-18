@@ -45,7 +45,7 @@ app.use("/api/clips", clips);
 app.use("/api/scrims", scrimmages);
 app.use("/api", api);
 app.get(
-  "/events.ics",
+  ["/events.ics", "/api/events.ics"],
   ah(async (_req, res) => {
     res
       .type("text/calendar; charset=utf-8")

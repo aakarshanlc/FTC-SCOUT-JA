@@ -210,7 +210,7 @@ export function OverviewView() {
           <span className={`statusdot${data?.sync.sheet && !data.sync.sheet.ok ? " bad" : ""}`} />
         </span>
         <span>
-          FTCScout {timeAgo(data?.sync.ftcscout?.createdAt)} · API {API_URL.replace(/^https?:\/\//, "")} · refreshes
+          FTCScout {timeAgo(data?.sync.ftcscout?.createdAt)} · API {API_URL ? API_URL.replace(/^https?:\/\//, "") : "built in"} · refreshes
           every 30s
         </span>
       </footer>

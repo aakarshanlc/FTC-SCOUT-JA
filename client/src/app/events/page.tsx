@@ -15,7 +15,7 @@ export default function EventsPage() {
   const list = data?.[tab] ?? [];
 
   const copyFeed = async () => {
-    const url = `${API_URL}/events.ics`;
+    const url = `${API_URL || window.location.origin}/events.ics`;
     try {
       await navigator.clipboard.writeText(url);
       toast.show("Calendar feed link copied");

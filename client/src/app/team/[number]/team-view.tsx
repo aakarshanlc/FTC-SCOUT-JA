@@ -11,7 +11,7 @@ import { IconArrowLeft, IconExternal, IconPlus, IconTrash } from "@/components/i
 import { FtcHistory } from "./ftc-history";
 
 export function TeamView() {
-  const { number } = useParams<{ number: string }>();
+  const { number } = useParams<{ number: string }>()!;
   const key = `/api/teams/${encodeURIComponent(number)}`;
   const { data, error, isLoading } = useSWR<TeamDetail>(key);
   const { mutate } = useSWRConfig();

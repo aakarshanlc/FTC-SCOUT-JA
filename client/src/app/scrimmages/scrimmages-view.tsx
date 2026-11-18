@@ -72,9 +72,9 @@ const MAX_TABS = 4;
 const isOfficial = (s: { sources: string[] }) => s.sources.includes("ftcscout");
 
 export function ScrimmagesView() {
-  const params = useSearchParams();
+  const params = useSearchParams()!;
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname()!;
   const { data: list, error } = useSWR<ScrimSummary[]>("/api/scrims");
 
   const open = (params.get("open") ?? "").split(",").filter(Boolean);

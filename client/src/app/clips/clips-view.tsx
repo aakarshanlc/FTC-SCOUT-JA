@@ -23,9 +23,9 @@ const hms = (s: number) => {
 };
 
 export function ClipsView() {
-  const params = useSearchParams();
+  const params = useSearchParams()!;
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname()!;
   const recId = params.get("rec");
   const matchParam = params.get("m");
   const { data: recordings, error } = useSWR<Recording[]>("/api/clips/recordings");

@@ -1,4 +1,7 @@
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+// Empty = same origin: the API is served by this Next.js app at /api (one Vercel
+// project). Set NEXT_PUBLIC_API_URL (e.g. http://localhost:4000) to use a
+// separately running server instead.
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 export const REFRESH_MS = 30_000;
 
 export interface Stats {

@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "ftc-scout-client",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,8 @@
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "swr": "^2.5.1"
+    "swr": "^2.5.1",
+    "ftc-scout-server": "file:../server"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
