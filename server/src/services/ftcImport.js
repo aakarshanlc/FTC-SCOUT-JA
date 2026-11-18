@@ -6,6 +6,7 @@
 import { config } from "../config.js";
 import { Event, FtcMatch, Participation, SyncLog, TeamSeason } from "../models/index.js";
 import { FTC_API, FTC_WEB } from "./ftcscout.js";
+import { cleanPlace } from "../lib/util.js";
 
 export const FIRST_SEASON = 2019; // earliest season FTCScout has data for
 const REGION_COUNTRY = { JM: "Jamaica" };
@@ -82,9 +83,11 @@ async function gql(query, variables) {
 }
 
 const place = (e) =>
-  [e?.address, [e?.location?.city, e?.location?.country].filter(Boolean).join(", ")]
-    .filter(Boolean)
-    .join(" · ");
+  cleanPlace(
+    [e?.address, [e?.location?.city, e?.location?.country].filter(Boolean).join(", ")]
+      .filter(Boolean)
+      .join(" · "),
+  );
 
 const r2 = (x) => (typeof x === "number" ? Math.round(x * 100) / 100 : null);
 const pts = (g) => (g ? { auto: r2(g.autoPoints), dc: r2(g.dcPoints), total: r2(g.totalPointsNp) } : null);

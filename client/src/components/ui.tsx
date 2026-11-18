@@ -32,17 +32,29 @@ export function Tile({
   value,
   sub,
   accent,
+  loading,
 }: {
   label: string;
   value: unknown;
   sub?: ReactNode;
   accent?: boolean;
+  /** Show placeholders instead of "–" while data is on its way. */
+  loading?: boolean;
 }) {
   return (
-    <div className={`card tile${accent ? " accent" : ""}`}>
+    <div className={`card tile${accent ? " accent" : ""}`} aria-busy={loading || undefined}>
       <div className="eyebrow">{label}</div>
-      <div className="v">{fmt(value)}</div>
-      <div className="s">{sub ?? " "}</div>
+      {loading ? (
+        <>
+          <div className="skeleton tile-skel-v" />
+          <div className="skeleton tile-skel-s" />
+        </>
+      ) : (
+        <>
+          <div className="v">{fmt(value)}</div>
+          <div className="s">{sub ?? " "}</div>
+        </>
+      )}
     </div>
   );
 }
@@ -52,7 +64,11 @@ export function Rank({ rank }: { rank: number | null }) {
   return <span className={`rank${rank <= 3 ? ` r${rank}` : ""}`}>{rank}</span>;
 }
 
+const sameName = (a?: string, b?: string) =>
+  !!a && !!b && a.trim().toLowerCase().replace(/\W+/g, "") === b.trim().toLowerCase().replace(/\W+/g, "");
+
 export function TeamCell({ number, name, org }: { number: string; name?: string; org?: string }) {
+  if (sameName(name, org)) org = undefined; // e.g. "MeadowBrook High" / "Meadowbrook High"
   return (
     <div className="teamcell">
       <span className="nm">{name || "Unnamed team"}</span>
@@ -119,6 +135,8 @@ export interface Column<T> {
   label: string;
   right?: boolean;
   sortable?: boolean;
+  /** Hide this column on phones (secondary stats). */
+  phoneHidden?: boolean;
   render?: (row: T) => ReactNode;
 }
 
@@ -167,7 +185,7 @@ export function SortableTable<T extends object>({
               return (
                 <th
                   key={c.key}
-                  className={`${c.right ? "r " : ""}${canSort ? "sortable" : ""}`}
+                  className={`${c.right ? "r " : ""}${canSort ? "sortable " : ""}${c.phoneHidden ? "hide-sm" : ""}`.trim() || undefined}
                   aria-sort={active ? (sort.dir === 1 ? "ascending" : "descending") : undefined}
                   onClick={canSort ? () => click(c.key) : undefined}
                 >
@@ -186,7 +204,7 @@ export function SortableTable<T extends object>({
               onClick={href ? () => router.push(href(r)) : undefined}
             >
               {cols.map((c) => (
-                <td key={c.key} className={c.right ? "r" : undefined}>
+                <td key={c.key} className={`${c.right ? "r " : ""}${c.phoneHidden ? "hide-sm" : ""}`.trim() || undefined}>
                   {c.render ? c.render(r) : fmt((r as Record<string, unknown>)[c.key])}
                 </td>
               ))}

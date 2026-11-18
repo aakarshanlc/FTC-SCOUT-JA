@@ -27,7 +27,7 @@ export function MatchList({
         <thead>
           <tr>
             <th>Match</th>
-            {focus ? <th>Result</th> : null}
+            {focus ? <th className="hide-sm">Result</th> : null}
             <th className="r">Red alliance</th>
             <th className="r">Blue alliance</th>
             {anyClip ? <th className="r">Video</th> : null}
@@ -51,9 +51,15 @@ export function MatchList({
                   <div className="muted" style={{ fontSize: 12 }}>
                     {m.level}
                   </div>
+                  {focus && result ? (
+                    /* On phones the Result column is hidden; show the outcome here instead. */
+                    <span className={`badge show-sm ${result === "W" ? "good" : result === "L" ? "red" : ""}`} style={{ marginTop: 4 }}>
+                      {result === "W" ? "Win" : result === "L" ? "Loss" : "Tie"}
+                    </span>
+                  ) : null}
                 </td>
                 {focus ? (
-                  <td>
+                  <td className="hide-sm">
                     {result ? (
                       <span className={`badge ${result === "W" ? "good" : result === "L" ? "red" : ""}`}>
                         {result === "W" ? "Win" : result === "L" ? "Loss" : "Tie"}
@@ -73,7 +79,7 @@ export function MatchList({
                   <td className="r">
                     {m.clip ? (
                       <button type="button" className="btn sm primary" onClick={() => setPlaying(m)} aria-label={`Watch ${m.label}`}>
-                        ▶ Watch
+                        ▶<span className="hide-sm-inline"> Watch</span>
                       </button>
                     ) : (
                       <span className="muted" style={{ fontSize: 12 }}>

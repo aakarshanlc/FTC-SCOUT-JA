@@ -71,21 +71,22 @@ function FtcRankings({ match }: { match: (r: FtcRankRow) => boolean }) {
     { key: "rank", label: "#", render: (r) => <Rank rank={r.rank} /> },
     { key: "name", label: "Team", render: (r) => <TeamCell number={r.number} name={r.name} org={r.org} /> },
     { key: "opr", label: "OPR", right: true, render: (r) => <Meter value={r.opr} max={max} /> },
-    { key: "auto", label: "Auto", right: true },
-    { key: "dc", label: "Teleop", right: true },
+    { key: "auto", label: "Auto", right: true, phoneHidden: true },
+    { key: "dc", label: "Teleop", right: true, phoneHidden: true },
     { key: "wins", label: "Record", right: true, render: (r) => <span className="num">{record(r.wins, r.losses, r.ties)}</span> },
-    { key: "best", label: "Best", right: true },
+    { key: "best", label: "Best", right: true, phoneHidden: true },
     {
       key: "worldRank",
       label: "World",
       right: true,
+      phoneHidden: true,
       render: (r) => (
         <span className="num muted" title={r.worldCount ? `of ${r.worldCount} teams` : undefined}>
           {r.worldRank ? `#${r.worldRank}` : "–"}
         </span>
       ),
     },
-    { key: "awards", label: "Awards", right: true, render: (r) => (r.awards ? <span className="badge signal">★ {r.awards}</span> : <span className="muted">–</span>) },
+    { key: "awards", label: "Awards", right: true, phoneHidden: true, render: (r) => (r.awards ? <span className="badge signal">★ {r.awards}</span> : <span className="muted">–</span>) },
   ];
 
   return (
@@ -123,10 +124,10 @@ function ScoutingRankings({ match, term }: { match: (r: ChampRow) => boolean; te
   const cols: Column<ChampRow>[] = [
     { key: "rank", label: "#", render: (r) => <Rank rank={r.rank} /> },
     { key: "name", label: "Team", render: (r) => <TeamCell number={r.number} name={r.name} org={r.org} /> },
-    { key: "auto", label: "Auto", right: true },
-    { key: "teleop", label: "Teleop", right: true },
+    { key: "auto", label: "Auto", right: true, phoneHidden: true },
+    { key: "teleop", label: "Teleop", right: true, phoneHidden: true },
     { key: "avg", label: "Avg total", right: true, render: (r) => <Meter value={r.avg} max={max} /> },
-    { key: "best", label: "Best", right: true },
+    { key: "best", label: "Best", right: true, phoneHidden: true },
     { key: "played", label: "Played", right: true },
   ];
   return (

@@ -9,7 +9,11 @@ import { AwardList, MatchList, SeasonChips } from "@/components/ftc";
 import { Empty, SkeletonRows } from "@/components/ui";
 
 export function FtcHistory({ number }: { number: string }) {
-  const { data, isLoading } = useSWR<{ seasons: FtcTeamSeason[]; awards: FtcAward[] }>(`/api/ftc/teams/${number}`);
+  const { data, isLoading } = useSWR<{
+    seasons: FtcTeamSeason[];
+    awards: FtcAward[];
+    registrations?: { season: number; code: string; name: string; start: string | null; competed: boolean }[];
+  }>(`/api/ftc/teams/${number}`);
   const [picked, setPicked] = useState<number | null>(null);
   const seasons = data?.seasons ?? [];
   const season = seasons.find((s) => s.season === picked) ?? seasons[0];
@@ -29,7 +33,26 @@ export function FtcHistory({ number }: { number: string }) {
         <div className="card-head">
           <h2 className="display">Competition history</h2>
         </div>
-        <Empty title="No FTCScout results yet">This team hasn't played an official event that FTCScout tracks.</Empty>
+        {data?.registrations?.length ? (
+          <div className="card-body">
+            <p className="muted" style={{ marginTop: 0 }}>
+              No official match results yet. FIRST lists this team as registered for:
+            </p>
+            {data.registrations.map((r) => (
+              <div key={`${r.season}-${r.code}`} className="result-row" style={{ paddingLeft: 0, paddingRight: 0 }}>
+                <div>
+                  <div style={{ fontWeight: 700 }}>{r.name}</div>
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    {seasonLabel(r.season)} season{r.start ? ` · ${fmtRange(r.start, null)}` : ""}
+                  </div>
+                </div>
+                <span className="badge">{r.competed ? "Competed" : "Registered · no results"}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Empty title="No official results yet">This team hasn&apos;t played an event that FTCScout or FIRST has published results for.</Empty>
+        )}
       </section>
     );
   }

@@ -47,12 +47,12 @@ export function EventView() {
       ),
     },
     { key: "wins", label: "W-L-T", right: true, render: (r) => <span className="num">{record(r.wins, r.losses, r.ties)}</span> },
-    { key: "rp", label: "RP", right: true },
+    { key: "rp", label: "RP", right: true, phoneHidden: true },
     { key: "opr", label: "OPR", right: true, render: (r) => <strong className="num">{fmt(r.opr)}</strong> },
-    { key: "oprAuto", label: "Auto OPR", right: true },
-    { key: "oprDc", label: "Teleop OPR", right: true },
-    { key: "avg", label: "Avg", right: true },
-    { key: "max", label: "High", right: true },
+    { key: "oprAuto", label: "Auto OPR", right: true, phoneHidden: true },
+    { key: "oprDc", label: "Teleop OPR", right: true, phoneHidden: true },
+    { key: "avg", label: "Avg", right: true, phoneHidden: true },
+    { key: "max", label: "High", right: true, phoneHidden: true },
   ];
 
   return (

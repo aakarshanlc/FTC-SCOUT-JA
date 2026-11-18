@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Event, FirstEvent, FtcMatch, Participation, Team, TeamSeason } from "../models/index.js";
-import { HttpError, ah } from "../lib/util.js";
+import { HttpError, ah, cleanPlace } from "../lib/util.js";
 import { withClips } from "./clips.js";
 
 export const ftc = Router();
@@ -61,11 +61,15 @@ export async function ftcSeasons() {
 
 /** Region leaderboard for a season from FTCScout OPR + event records. */
 export async function ftcRankings(season) {
-  const [seasons, parts] = await Promise.all([
+  const [seasons, parts, firstEvents] = await Promise.all([
     TeamSeason.find({ season }).lean(),
     Participation.find({ season }).lean(),
+    FirstEvent.find({ season, "awards.0": { $exists: true } }, { code: 1, awards: 1 }).lean(),
   ]);
   const names = await teamNames(seasons.map((s) => s.team));
+  // FIRST's official award list wins over FTCScout's (which can be missing,
+  // e.g. no 2025–26 awards) — same rule as the team and event pages.
+  const firstAwards = new Map(firstEvents.map((f) => [f.code, f.awards]));
   const byTeam = new Map();
   for (const p of parts) {
     const e = byTeam.get(p.team) ?? { events: 0, wins: 0, losses: 0, ties: 0, awards: 0, best: null };
@@ -73,7 +77,8 @@ export async function ftcRankings(season) {
     e.wins += p.wins ?? 0;
     e.losses += p.losses ?? 0;
     e.ties += p.ties ?? 0;
-    e.awards += p.awards?.length ?? 0;
+    const official = firstAwards.get(p.eventCode);
+    e.awards += official ? official.filter((a) => a.team === p.team).length : (p.awards?.length ?? 0);
     if (p.max !== null && p.max !== undefined) e.best = Math.max(e.best ?? 0, p.max);
     byTeam.set(p.team, e);
   }
@@ -170,7 +175,19 @@ ftc.get(
       .flatMap((p) => (p.awards ?? []).map((a) => ({ ...a, season: p.season, eventCode: p.eventCode, eventName: p.eventName })))
       .sort((a, b) => b.season - a.season || awardOrder(a.type) - awardOrder(b.type) || a.placement - b.placement);
     const latest = firstEvents.flatMap((f) => (f.teams ?? []).filter((t) => t.team === team).map((t) => ({ ...t, season: f.season }))).sort((a, b) => b.season - a.season)[0];
-    res.json({ seasons: out, awards, sponsors: latest?.sponsors ?? null });
+    // Events the team registered for with FIRST, flagged when no results exist
+    // (e.g. registered but didn't compete, or results never published).
+    const registrations = firstEvents
+      .filter((f) => (f.teams ?? []).some((t) => t.team === team))
+      .map((f) => ({
+        season: f.season,
+        code: f.code,
+        name: f.name,
+        start: f.start ?? null,
+        competed: parts.some((p) => p.season === f.season && p.eventCode === f.code),
+      }))
+      .sort((a, b) => b.season - a.season);
+    res.json({ seasons: out, awards, sponsors: latest?.sponsors ?? null, registrations });
   }),
 );
 
@@ -234,7 +251,7 @@ ftc.get(
       kind: event?.kind ?? first?.eventType ?? "",
       start: event?.start ?? first?.start ?? null,
       end: event?.end ?? first?.end ?? null,
-      location: event?.location ?? first?.location ?? "",
+      location: cleanPlace(event?.location ?? first?.location ?? ""),
       website: event?.website ?? null,
       liveStream: event?.liveStream ?? null,
       url: event?.url ?? null,
@@ -242,7 +259,7 @@ ftc.get(
       awards,
       matches: await withClips(matches),
       venue: fe?.venue || null,
-      address: fe ? [fe.address, fe.city, fe.country].filter(Boolean).join(", ") : null,
+      address: fe ? cleanPlace([fe.address, fe.city, fe.country].filter(Boolean).join(", ")) : null,
       coordinates: fe?.coordinates?.length === 2 ? { lng: fe.coordinates[0], lat: fe.coordinates[1] } : null,
       fieldCount: fe?.fieldCount ?? null,
       volunteerUrl: fe?.volunteerUrl ?? null,

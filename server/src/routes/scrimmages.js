@@ -8,7 +8,7 @@
 
 import { Router } from "express";
 import { Event, FirstEvent, FtcMatch, Participation, Scrimmage, Team } from "../models/index.js";
-import { HttpError, ah, slug, stats, todayISO } from "../lib/util.js";
+import { HttpError, ah, cleanPlace, slug, stats, todayISO } from "../lib/util.js";
 import { withClips } from "./clips.js";
 
 export const scrimmages = Router();
@@ -110,7 +110,7 @@ export async function listScrimmages() {
       name: s.name,
       start: s.start ?? null,
       end: s.end ?? s.start ?? null,
-      location: s.location ?? "",
+      location: cleanPlace(s.location),
       season: s.season ?? null,
       code: s.code ?? null,
       url: s.url ?? null,

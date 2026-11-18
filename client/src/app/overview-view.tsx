@@ -55,13 +55,15 @@ export function OverviewView() {
       <div className="tiles">
         <Tile
           accent
+          loading={!data && !error}
           label={next ? "Next event" : "Events"}
           value={days === null ? "TBD" : days <= 0 ? "Today" : `${days}d`}
           sub={next ? next.name : "Nothing scheduled"}
         />
-        <Tile label="Teams tracked" value={data?.counts.teams} sub={data ? `${data.counts.rankedTeams} ranked` : ""} />
-        <Tile label="Matches logged" value={data?.counts.matches} sub="Championship entries" />
+        <Tile loading={!data && !error} label="Teams tracked" value={data?.counts.teams} sub={data ? `${data.counts.rankedTeams} ranked` : ""} />
+        <Tile loading={!data && !error} label="Matches logged" value={data?.counts.matches} sub="Championship entries" />
         <Tile
+          loading={!data && !error}
           label="Scrimmage reports"
           value={data?.counts.scrimmageEntries}
           sub={data ? `${data.counts.scrimmages} scrimmage${data.counts.scrimmages === 1 ? "" : "s"}` : ""}

@@ -38,3 +38,22 @@ export class HttpError extends Error {
     if (code) this.code = code;
   }
 }
+
+const PLACEHOLDER = /^(n\/?a|none|tbd|tba|-|–|null|undefined)$/i;
+/**
+ * Tidy a location for display: drop placeholder parts that some sources fill
+ * in ("N/A · N/A, Jamaica" → "Jamaica") and collapse empty separators.
+ */
+export function cleanPlace(s) {
+  return String(s ?? "")
+    .split(" · ")
+    .map((seg) =>
+      seg
+        .split(",")
+        .map((x) => x.trim())
+        .filter((x) => x && !PLACEHOLDER.test(x))
+        .join(", "),
+    )
+    .filter(Boolean)
+    .join(" · ");
+}

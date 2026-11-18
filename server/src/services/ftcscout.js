@@ -1,5 +1,6 @@
 import { config } from "../config.js";
 import { Event, SyncLog, Team } from "../models/index.js";
+import { cleanPlace } from "../lib/util.js";
 
 export const FTC_API = "https://api.ftcscout.org/graphql";
 export const FTC_REST = "https://api.ftcscout.org/rest/v1";
@@ -17,7 +18,7 @@ const EVENTS_QUERY = `
 
 const locationOf = (e) => {
   const place = [e.location?.city, e.location?.country].filter(Boolean).join(", ");
-  return [e.address, place].filter(Boolean).join(" · ");
+  return cleanPlace([e.address, place].filter(Boolean).join(" · "));
 };
 
 /** Pull the season's events from FTCScout into MongoDB. */

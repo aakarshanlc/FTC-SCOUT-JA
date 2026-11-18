@@ -62,8 +62,8 @@ export function TeamView() {
         <div>
           <div className="eyebrow">
             {[
-              data?.org || (isLoading ? "Loading…" : "Unknown school"),
-              data?.ftc?.city,
+              data?.org || (isLoading ? "Loading…" : data?.ftc?.city || data?.first?.city ? null : "School not listed"),
+              data?.ftc?.city || data?.first?.city?.replace(/, \d+, /, ", "),
               data?.ftc?.rookieYear ? `Rookie ${data.ftc.rookieYear}` : null,
             ]
               .filter(Boolean)

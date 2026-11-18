@@ -120,7 +120,9 @@ function AddRecording({ onAdded }: { onAdded: (r: Recording) => void }) {
         <div className="field full">
           <label htmlFor="url">YouTube link</label>
           <input id="url" name="url" className="input" required placeholder="https://www.youtube.com/watch?v=…" />
-          <span className="hint">A recorded livestream of the event lines up automatically.</span>
+          <span className="hint">
+            If YouTube shares when the stream started, matches line up automatically. Otherwise you&apos;ll pick one match and the time it starts, and we line up the rest.
+          </span>
         </div>
         <div className="field">
           <label htmlFor="event">Event</label>

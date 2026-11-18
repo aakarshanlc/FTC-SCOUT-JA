@@ -1,5 +1,5 @@
 import { Event, Scrimmage } from "../models/index.js";
-import { slug, todayISO } from "../lib/util.js";
+import { cleanPlace, slug, todayISO } from "../lib/util.js";
 
 const addDays = (date, days) => {
   const d = new Date(`${date}T00:00:00`);
@@ -13,7 +13,7 @@ const shape = (e) => ({
   kind: e.kind,
   start: e.start,
   end: e.end,
-  location: e.location,
+  location: cleanPlace(e.location),
   website: e.website,
   liveStream: e.liveStream,
   url: e.url,
