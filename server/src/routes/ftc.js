@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Event, FirstEvent, FtcMatch, Participation, Team, TeamSeason } from "../models/index.js";
-import { HttpError, ah, cleanPlace } from "../lib/util.js";
+import { HttpError, ah, cleanPlace, stripTags } from "../lib/util.js";
 import { withClips } from "./clips.js";
 
 export const ftc = Router();
@@ -18,7 +18,7 @@ const firstType = (name = "") =>
   : "Other";
 const firstAward = (a) => ({
   type: firstType(a.name),
-  label: a.name,
+  label: stripTags(a.name),
   placement: a.series,
   personName: a.person ?? null,
   number: a.team ?? undefined,

@@ -3,6 +3,7 @@
 // the next level, ranking tiebreakers and venue details — data FTCScout lacks.
 // Requires FTC_API_USER / FTC_API_TOKEN (free: ftc-events.firstinspires.org/services/API).
 
+import { stripTags } from "../lib/util.js";
 import { config } from "../config.js";
 import { FirstEvent, SyncLog, Team } from "../models/index.js";
 
@@ -72,7 +73,7 @@ async function importEvent(season, e) {
     })),
     awards: (awards?.awards ?? []).map((a) => ({
       awardId: a.awardId,
-      name: a.name,
+      name: stripTags(a.name),
       series: a.series,
       team: a.teamNumber ? String(a.teamNumber) : null,
       person: a.person ?? null,

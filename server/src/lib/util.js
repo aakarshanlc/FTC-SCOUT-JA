@@ -57,3 +57,7 @@ export function cleanPlace(s) {
     .filter(Boolean)
     .join(" · ");
 }
+
+/** FIRST's API puts markup in some names ("<i>FIRST</i>® Leadership Award"). */
+export const stripTags = (s) =>
+  s == null ? s : String(s).replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();

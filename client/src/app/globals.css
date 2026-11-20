@@ -1746,3 +1746,15 @@ table.data {
 .subscribe-options { display: flex; flex-wrap: wrap; gap: 10px; }
 .subscribe-foot { margin: 0; padding: 0 18px 16px; font-size: 13px; }
 .subscribe-foot a { color: var(--signal); font-weight: 600; }
+
+/* Medium screens (900–1179px): the full nav and a 260px search box don't both
+   fit, which pushed Sign in off the edge. Collapse search to its icon (it opens
+   on click) and tighten the nav until there's room. */
+@media (min-width: 900px) and (max-width: 1179px) {
+  .search-field { width: 38px; }
+  .search-field kbd { display: none; }
+  .search.open .search-field { width: 190px; }
+  .nav a { padding: 7px 10px; }
+  .acct-name { display: none; }
+}
+.topbar-right { min-width: 0; }
