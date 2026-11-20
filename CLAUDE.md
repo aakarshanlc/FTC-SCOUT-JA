@@ -13,7 +13,7 @@ The Express app from `server/` is mounted inside Next at `client/src/pages/api/[
 (server is linked as the `ftc-scout-server` package; the client's `postinstall` installs its deps).
 `NEXT_PUBLIC_API_URL="/"` there means same-origin. Env on Vercel: `MONGODB_URI` (Atlas, Network Access
 0.0.0.0/0), `FTC_API_USER`, `FTC_API_TOKEN`, optional `YOUTUBE_API_KEY`. Daily cron: `client/vercel.json`.
-Deploys come from the fork `revolverking927/FTC-SCOUT-JA`, branch `video-lab`.
+Deploys come from the fork `revolverking927/FTC-SCOUT-JA`, branch `main` (work happens on `site-polish`, merged into main by pull request). FIRST award names can contain HTML (`<i>FIRST</i>®`): run them through `stripTags()`.
 
 ## Run
 
